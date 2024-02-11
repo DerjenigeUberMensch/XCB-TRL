@@ -74,25 +74,25 @@ XCBGetScreen(XCBConnection *display)
     return xcb_setup_roots_iterator(xcb_get_setup(display)).data;
 }
 
-inline int
+inline XCBWindow
 XCBRootWindow(XCBConnection *display, int screen)
 {
     /* Gets the screen structure */
     return xcb_aux_get_screen(display, screen)->root;
 }
-inline int
+inline unsigned int
 XCBDisplayWidth(XCBConnection *display, int screen)
 {
     /* Gets the screen structure */
     return xcb_aux_get_screen(display, screen)->width_in_pixels;
 }
-inline int
+inline unsigned int
 XCBDisplayHeight(XCBConnection *display, int screen)
 {
     /* Gets the screen structure */
     return xcb_aux_get_screen(display, screen)->height_in_pixels;
 }
-inline int
+inline unsigned int
 XCBDefaultDepth(XCBConnection *display, int screen)
 {
     /* Gets the screen structure */
@@ -163,6 +163,14 @@ XCBGetWindowGeometryReply(XCBDisplay *display, XCBGeometryCookie cookie)
 {
     XCBGenericError **e = NULL;
     return xcb_get_geometry_reply(display, cookie, e);
+}
+
+XCBPixmap
+XCBCreatePixmap(XCBDisplay *display, XCBWindow root, unsigned int width, unsigned int height, unsigned short depth)
+{
+    const XCBPixmap id = xcb_generate_id(display);
+    xcb_create_pixmap(display, depth, id, root, width, height);
+    return id;
 }
 
 inline int 

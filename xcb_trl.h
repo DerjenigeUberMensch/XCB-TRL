@@ -35,6 +35,7 @@ typedef xcb_get_geometry_reply_t XCBGeometry;
 typedef xcb_get_geometry_reply_t XCBWindowGeometry;
 
 
+typedef xcb_pixmap_t XCBPixmap;
 typedef xcb_gcontext_t XCBGC;
 typedef xcb_drawable_t XCBDrawable;
 typedef xcb_point_t XCBPoint;
@@ -93,6 +94,21 @@ extern int XCBImageByteOrder(XCBConnection *display);
 extern const XCBSetup *XCBGetSetup(XCBConnection *display);
 
 extern XCBScreen *XCBGetScreen(XCBConnection *display);
+extern XCBWindow XCBRootWindow(XCBConnection *display, int screen);
+extern unsigned int XCBDisplayWidth(XCBConnection *display, int screen);
+extern unsigned int XCBDisplayHeight(XCBConnection *display, int screen);
+extern unsigned int XCBDisplayDepth(XCBConnection *display, int screen);
+extern unsigned int XCBDisplayInput(XCBConnection *display, int screen);
+extern void XCBSync(XCBDisplay *display);
+extern XCBCookie XCBMoveWindow(XCBDisplay *display, XCBWindow window, long x, long y);
+extern XCBCookie XCBMoveResizeWindow(XCBDisplay *display, XCBWindow window, long x, long y, unsigned long width, unsigned long height);
+extern XCBCookie XCBRaiseWindow(XCBDisplay *display, XCBWindow window);
+extern XCBWindowAttributesCookie XGetWindowAttributesCookie(XCBDisplay *display, XCBWindow window);
+extern XCBWindowAttributes *XCBGetWindowAttributesReply(XCBDisplay *display, XCBWindowAttributesCookie cookie);
+extern XCBGeometryCookie XCBGetWindowGeometryCookie(XCBDisplay *display, XCBWindow window);
+extern XCBGeometry *XCBGetWindowGeometryReply(XCBDisplay *display, XCBGeometryCookie cookie);
+extern XCBPixmap XCBCreatePixmap(XCBDisplay *display, XCBWindow root, unsigned int width, unsigned int height, unsigned short depth);
+
 
 extern int XCBRootOfScreen(XCBConnection *display);
 extern int XCB(XCBConnection *display);
