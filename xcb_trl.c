@@ -1,14 +1,49 @@
 
 #include "xcb_trl.h"
 #include <xcb/xcb.h>
+#include <xcb/xcb_aux.h>
 #include <stdio.h>
 #include <string.h>
 
 
-inline XCBConnection *
+
+
+typedef uint8_t  u8;
+typedef uint16_t u16;
+typedef uint32_t u32;
+typedef uint64_t u64;
+
+typedef int8_t   i8;
+typedef int16_t  i16;
+typedef int32_t  i32;
+typedef int64_t  i64;
+
+
+/* HELPER FUNCTION */
+static inline XCBScreen *
+screen_of_display(XCBDisplay *display, int screen)
+{
+    xcb_screen_iterator_t iter;
+
+    iter = xcb_setup_roots_iterator(xcb_get_setup(display));
+    for(; iter.rem; --screen, xcb_screen_next(&iter))
+    {
+        if(screen == 0)
+        {   return iter.data;
+        }
+    }
+    return NULL;
+}
+
+
+
+
+
+
+inline XCBDisplay *
 XCBOpenDisplay(const char *displayName, int *defaultScreenReturn)
 {
-    XCBConnection *display = xcb_connect(displayName, defaultScreenReturn);
+    XCBDisplay *display = xcb_connect(displayName, defaultScreenReturn);
     /* We need to check return type cause xcb_connect never returns NULL (for some reason).
      * So we just check error, which requires display.
      */
@@ -22,27 +57,47 @@ XCBOpenDisplay(const char *displayName, int *defaultScreenReturn)
 }
 
 inline void 
-XCBCloseDisplay(XCBConnection *display)
+XCBCloseDisplay(XCBDisplay *display)
 {
     /* Closes connection and frees resulting data. */
     xcb_disconnect(display);
 }
 
 inline int 
-XCBConnectionNumber(XCBConnection *display)
+XCBDisplayNumber(XCBDisplay *display)
 {
     /* gets the file descriptor AKA the connection number */
     return xcb_get_file_descriptor(display);
 }
 
+inline int
+XCBConnectionNumber(XCBDisplay *display)
+{
+    /* gets the file descriptor AKA the connection number */
+    return xcb_get_file_descriptor(display);
+}
+
+inline XCBScreen *
+XCBScreenOfDisplay(XCBDisplay *display, int screen)
+{
+    return xcb_aux_get_screen(display, screen);
+}
+
+inline XCBScreen *
+XCBDefaultScreenOfDisplay(XCBDisplay *display, int screen)
+{
+    return screen_of_display(display, screen);
+}
+
+
 inline int 
-XCBScreenCount(XCBConnection *display)
+XCBScreenCount(XCBDisplay *display)
 {
     return xcb_setup_roots_iterator (xcb_get_setup (display)).rem;
 }
 
 char *
-XCBServerVendor(XCBConnection *display)
+XCBServerVendor(XCBDisplay *display)
 {
     char *vendor = NULL;
     int length;
@@ -62,47 +117,113 @@ XCBServerVendor(XCBConnection *display)
  * display->setup basically
  */
 
+inline int 
+XCBProtocolVersion(XCBDisplay *display)
+{   return xcb_get_setup(display)->protocol_major_version;
+}
+inline int 
+XCBProtocolRevision(XCBDisplay *display)
+{   return xcb_get_setup(display)->protocol_minor_version;
+}
+inline int
+XCBVendorRelease(XCBDisplay *display)
+{   return xcb_get_setup (display)->release_number;
+}
+inline int
+XCBBitmapUnit(XCBDisplay *display)
+{   return xcb_get_setup(display)->bitmap_format_scanline_unit;
+}
+inline int
+XCBBitmapBitOrder(XCBDisplay *display)
+{   return xcb_get_setup(display)->bitmap_format_bit_order;
+}
+inline int
+XCBBitmapPad(XCBDisplay *display)
+{   return xcb_get_setup(display)->bitmap_format_scanline_pad;
+}
+inline int
+XCBImageByteOrder(XCBDisplay *display)
+{   return xcb_get_setup(display)->image_byte_order;
+}
+
 inline const XCBSetup *
-XCBGetSetup(XCBConnection *display)
+XCBGetSetup(XCBDisplay *display)
 {
     return xcb_get_setup(display);
 }
 
 inline XCBScreen *
-XCBGetScreen(XCBConnection *display)
+XCBGetScreen(XCBDisplay *display)
 {
     return xcb_setup_roots_iterator(xcb_get_setup(display)).data;
 }
 
 inline XCBWindow
-XCBRootWindow(XCBConnection *display, int screen)
+XCBRootWindow(XCBDisplay *display, int screen)
 {
     /* Gets the screen structure */
     return xcb_aux_get_screen(display, screen)->root;
 }
-inline unsigned int
-XCBDisplayWidth(XCBConnection *display, int screen)
+
+inline XCBWindow
+XCBDefaultRootWindow(XCBDisplay *display, int screen)
+{
+    XCBScreen *scr = screen_of_display(display, screen);
+    if(scr) 
+    {   return scr->root;
+    }
+    return 0; /* AKA NULL; AKA we didnt find a screen */
+}
+
+inline u16
+XCBDisplayWidth(XCBDisplay *display, int screen)
 {
     /* Gets the screen structure */
     return xcb_aux_get_screen(display, screen)->width_in_pixels;
 }
-inline unsigned int
-XCBDisplayHeight(XCBConnection *display, int screen)
+inline u16
+XCBDisplayHeight(XCBDisplay *display, int screen)
 {
     /* Gets the screen structure */
     return xcb_aux_get_screen(display, screen)->height_in_pixels;
 }
-inline unsigned int
-XCBDefaultDepth(XCBConnection *display, int screen)
+inline u8
+XCBDefaultDepth(XCBDisplay *display, int screen)
 {
     /* Gets the screen structure */
     return xcb_aux_get_screen(display, screen)->root_depth;
 }
 
 inline XCBCookie
-XCBSelectInput(XCBDisplay *display, XCBWindow window, unsigned long mask)
+XCBSelectInput(XCBDisplay *display, XCBWindow window, u32 mask)
 {   
     return xcb_change_window_attributes(display, window, XCB_CW_EVENT_MASK, &mask);
+}
+
+inline XCBCookie
+XCBChangeWindowAttributes(XCBDisplay *display, XCBWindow window, u32 mask, XCBWindowAttributes *window_attributes)
+{
+    return xcb_change_window_attributes(display, window, mask, window_attributes);
+}
+
+inline u32
+XCBBlackPixel(XCBDisplay *display, int screen)
+{
+    const XCBScreen *scr = screen_of_display(display, screen);
+    if(scr)
+    {   return scr->black_pixel;
+    }
+    return 0; /* AKA NULL; AKA we didnt find a screen */
+}
+
+inline u32
+XCBWhitePixel(XCBDisplay *display, int screen)
+{
+    const XCBScreen *scr = screen_of_display(display, screen);
+    if(scr)
+    {   return scr->white_pixel;
+    }
+    return 0; /* AKA NULL; AKA we didnt find a screen */
 }
 
 inline void
@@ -116,56 +237,111 @@ XCBSync(XCBDisplay *display)
     xcb_aux_sync(display);
 }
 
+
+
+
 inline XCBCookie
-XCBMoveWindow(XCBDisplay *display, XCBWindow window, long x, long y)
+XCBMoveWindow(XCBDisplay *display, XCBWindow window, i32 x, i32 y)
 {
-    const long values[] = { x, y };
-    const unsigned long mask = XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y;
+    const i32 values[] = { x, y };
+    const u16 mask = XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y;
     return xcb_configure_window(display, window, mask, values);
 }
 
+/* NOT TYPE SAFE
+ * OVERFLOW CAN OCCUR ON u32 > i32
+ */
 inline XCBCookie
-XCBMoveResizeWindow(XCBDisplay *display, XCBWindow window, long x, long y, unsigned long width, unsigned long height)
+XCBMoveResizeWindow(XCBDisplay *display, XCBWindow window, i32 x, i32 y, u32 width, u32 height)
 {
-    const long values[] = { x, y, width, height };
-    const unsigned long mask = XCB_CONFIG_WINDOW_X|XCB_CONFIG_WINDOW_Y|XCB_CONFIG_WINDOW_WIDTH|XCB_CONFIG_WINDOW_HEIGHT;
+    const i32 values[] = { x, y, width, height };
+    const u32 mask = XCB_CONFIG_WINDOW_X|XCB_CONFIG_WINDOW_Y|XCB_CONFIG_WINDOW_WIDTH|XCB_CONFIG_WINDOW_HEIGHT;
     return xcb_configure_window(display, window, mask, values);
 }
 
 inline XCBCookie
 XCBRaiseWindow(XCBDisplay *display, XCBWindow window)
 {
-    const unsigned long mask = XCB_STACK_MODE_ABOVE;
-    return xcb_configure_window(display, window, XCB_CONFIG_WINDOW_STACK_MODE, &mask);
+    const u32 values = { XCB_STACK_MODE_ABOVE };
+    const u32 mask = XCB_CONFIG_WINDOW_STACK_MODE;
+    return xcb_configure_window(display, window, mask, &values);
 }
 
-XCBWindowAttributesCookie
-XGetWindowAttributesCookie(XCBDisplay *display, XCBWindow window)
+inline XCBCookie
+XCBLowerWindow(XCBDisplay *display, XCBWindow window)
+{
+    const u32 values = { XCB_STACK_MODE_BELOW };
+    const u32 mask = XCB_CONFIG_WINDOW_STACK_MODE;
+    return xcb_configure_window(display, window, mask, &values);
+}
+
+inline XCBCookie
+XCBRaiseWindowIf(XCBDisplay *display, XCBWindow window)
+{
+    const u32 values = { XCB_STACK_MODE_TOP_IF };
+    const u32 mask = XCB_CONFIG_WINDOW_STACK_MODE;
+    return xcb_configure_window(display, window, mask, &values);
+}
+
+inline XCBCookie
+XCBLowerWindowIf(XCBDisplay *display, XCBWindow window)
+{
+    const u32 values = { XCB_STACK_MODE_BOTTOM_IF };
+    const u32 mask = XCB_CONFIG_WINDOW_STACK_MODE;
+    return xcb_configure_window(display, window, mask, &values);
+}
+
+inline XCBCookie
+XCBRaiseLowerWindow(XCBDisplay *display, XCBWindow window)
+{
+    const u32 values = { XCB_STACK_MODE_OPPOSITE };
+    const u32 mask = XCB_CONFIG_WINDOW_STACK_MODE;
+    return xcb_configure_window(display, window, mask, &values);
+}
+
+inline XCBCookie
+XCBSetWindowBorderWidth(XCBDisplay *display, XCBWindow window, u32 border_width)
+{
+    const u32 values = { border_width };
+    const u32 mask = XCB_CONFIG_WINDOW_BORDER_WIDTH;
+    return xcb_configure_window(display, window, mask, &values);
+}
+
+inline XCBCookie
+XCBSetSibling(XCBDisplay *display, XCBWindow window, XCBWindow sibling)
+{
+    const XCBWindow values = { sibling };
+    const u32 mask = XCB_CONFIG_WINDOW_SIBLING;
+    return xcb_configure_window(display, window, mask, &values);
+}
+
+inline XCBWindowAttributesCookie
+XCBGetWindowAttributesCookie(XCBDisplay *display, XCBWindow window)
 {
     return xcb_get_window_attributes(display, window);
 }
 
-XCBWindowAttributes *
+inline XCBWindowAttributes *
 XCBGetWindowAttributesReply(XCBDisplay *display, XCBWindowAttributesCookie cookie)
 {
     XCBGenericError **e = NULL;
     return xcb_get_window_attributes_reply(display, cookie, e);
 }
 
-XCBGeometryCookie
+inline XCBGeometryCookie
 XCBGetWindowGeometryCookie(XCBDisplay *display, XCBWindow window)
 {
     return xcb_get_geometry(display, window);
 }
 
-XCBGeometry *
+inline XCBGeometry *
 XCBGetWindowGeometryReply(XCBDisplay *display, XCBGeometryCookie cookie)
 {
     XCBGenericError **e = NULL;
     return xcb_get_geometry_reply(display, cookie, e);
 }
 
-XCBPixmap
+inline XCBPixmap
 XCBCreatePixmap(XCBDisplay *display, XCBWindow root, unsigned int width, unsigned int height, unsigned short depth)
 {
     const XCBPixmap id = xcb_generate_id(display);
@@ -173,37 +349,45 @@ XCBCreatePixmap(XCBDisplay *display, XCBWindow root, unsigned int width, unsigne
     return id;
 }
 
-inline int 
-XCBProtocolVersion(XCBConnection *display)
-{   return xcb_get_setup(display)->protocol_major_version;
-}
-inline int 
-XCBProtocolRevision(XCBConnection *display)
-{   return xcb_get_setup(display)->protocol_minor_version;
-}
-inline int
-XCBVendorRelease(XCBConnection *display)
-{   return xcb_get_setup (display)->release_number;
-}
-inline int
-XCBBitmapUnit(XCBConnection *display)
-{   return xcb_get_setup(display)->bitmap_format_scanline_unit;
-}
-inline int
-XCBBitmapBitOrder(XCBConnection *display)
-{   return xcb_get_setup(display)->bitmap_format_bit_order;
-}
-inline int
-XCBBitmapPad(XCBConnection *display)
-{   return xcb_get_setup(display)->bitmap_format_scanline_pad;
-}
-inline int
-XCBImageByteOrder(XCBConnection *display)
-{   return xcb_get_setup(display)->image_byte_order;
+/* Cursors */
+inline XCBCursor
+XCBCreateFontCursor(XCBDisplay *display, int shape)
+{
+    xcb_font_t font;
+    xcb_cursor_t id;
+    /* FORMAT IN RGB: (AKA RED GREEN BLUE) */
+    /* fg = foreground; bg = background */
+    const u16 fgred = 0;
+    const u16 fggreen = 0;
+    const u16 fgblue = 0;
+
+    const u16 bgred = 0;
+    const u16 bggreen = 0;
+    const u16 bgblue = 0;
+
+    font = xcb_generate_id(display);
+    xcb_open_font(display, font, strlen("cursor"), "cursor");
+
+    id = xcb_generate_id(display);
+    xcb_create_glyph_cursor(display, id, font, font, shape, shape + 1,
+                            fgred, fggreen, fgblue,
+                            bgred, bggreen, bgblue
+                            );
+    return id;
 }
 
+inline XCBCookie
+XCBFreeCursor(XCBDisplay *display, XCBCursor cursor)
+{
+    return xcb_free_cursor(display, cursor);
+}
+
+
+
+
+
 inline int 
-XCBFlush(XCBConnection *display)
+XCBFlush(XCBDisplay *display)
 {
     /* This locks the XServer thread (pthread mutix lock).
      * and writes the buffer to the server.
@@ -214,7 +398,7 @@ XCBFlush(XCBConnection *display)
 }
 
 inline unsigned long
-XCBGetMaximumRequestLength(XCBConnection *display)
+XCBGetMaximumRequestLength(XCBDisplay *display)
 {
     /* <Straight from the documentation.>
      *
@@ -233,7 +417,7 @@ XCBGetMaximumRequestLength(XCBConnection *display)
 
 
 inline XCBGenericEvent *
-XCBPollForEvent(XCBConnection *display)
+XCBPollForEvent(XCBDisplay *display)
 {
     /* TODO */
     /* If I/O error do something */
@@ -242,14 +426,14 @@ XCBPollForEvent(XCBConnection *display)
 
 
 inline XCBGenericEvent *
-XCBPollForQueuedEvent(XCBConnection *display)
+XCBPollForQueuedEvent(XCBDisplay *display)
 {
     return xcb_poll_for_queued_event(display);
 }
 
 
 inline int
-XCBCheckDisplayError(XCBConnection *display)
+XCBCheckDisplayError(XCBDisplay *display)
 {
     /* Error values:
      * XCB_CONN_ERROR, because of socket errors, pipe errors or other stream errors.
@@ -263,7 +447,7 @@ XCBCheckDisplayError(XCBConnection *display)
 }
 
 inline char *
-XCBGetErrorText(XCBConnection *display)
+XCBGetErrorText(XCBDisplay *display)
 {
     /* TODO */
     return "";
@@ -281,14 +465,14 @@ XCBGetErrorText(XCBConnection *display)
 
 
 XCBGenericEvent *
-XCBNextEvent(XCBConnection *display)
+XCBNextEvent(XCBDisplay *display)
 {
     /* waits till next event happens before returning */
     return xcb_wait_for_event(display);
 }
 
 XCBGenericEvent *
-XCBWaitForEvent(XCBConnection *display)
+XCBWaitForEvent(XCBDisplay *display)
 {
     /* waits till next event happens before returning */
     return xcb_wait_for_event(display);
@@ -305,13 +489,13 @@ XCBWaitForEvent(XCBConnection *display)
 
 
 inline XCBCookie 
-XCBMapWindow(XCBConnection display, XCBWindow window)
+XCBMapWindow(XCBDisplay display, XCBWindow window)
 {
     return xcb_map_window(display, window)
 }
 
 inline XCBWindow 
-XCBCreateWindow(XCBConnection *display, XCBWindow parent, 
+XCBCreateWindow(XCBDisplay *display, XCBWindow parent, 
 int x, int y, unsigned int width, unsigned int height, int border_width, 
 int depth, unsigned int class, unsigned long valuemask)
 {
@@ -323,7 +507,7 @@ int depth, unsigned int class, unsigned long valuemask)
 }
 
 inline XCBGC 
-XCBCreateGC(XCBConnection *display, XCBDrawable drawable, 
+XCBCreateGC(XCBDisplay *display, XCBDrawable drawable, 
 unsigned long valuemask, unsigned long *valuelist)
 {
     const XCBGC id = xcb_generate_id(display);
@@ -332,13 +516,13 @@ unsigned long valuemask, unsigned long *valuelist)
 }
 
 inline XCBCookie 
-XCBChangeGC(XCBConnection *display, XCBGC gc, unsigned long valuemask, unsigned long *valuelist))
+XCBChangeGC(XCBDisplay *display, XCBGC gc, unsigned long valuemask, unsigned long *valuelist))
 {
     return xcb_change_gc(display, gc, valuemask, valuelist);
 }
 
 inline XCBCookie 
-XCBDrawPoint(XCBConnection *display, int coordinatemode, XCBDrawable drawable, XCBGC gc, unsigned long points_len, XCBPoint *points)
+XCBDrawPoint(XCBDisplay *display, int coordinatemode, XCBDrawable drawable, XCBGC gc, unsigned long points_len, XCBPoint *points)
 {
     return xcb_poly_point(display, coordinatemode, drawable, gc, points_len, points);
 }
@@ -351,7 +535,7 @@ XCBDrawPoint(XCBConnection *display, int coordinatemode, XCBDrawable drawable, X
 /* dumb stuff */
 
 void 
-XCBPrefetchMaximumRequestLength(XCBConnection *display)
+XCBPrefetchMaximumRequestLength(XCBDisplay *display)
 {
     /**
      * @brief Prefetch the maximum request length without blocking.
