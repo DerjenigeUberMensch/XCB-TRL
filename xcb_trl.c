@@ -28,7 +28,6 @@ XCBCloseDisplay(XCBConnection *display)
     xcb_disconnect(display);
 }
 
-
 inline int 
 XCBConnectionNumber(XCBConnection *display)
 {
@@ -56,6 +55,115 @@ XCBServerVendor(XCBConnection *display)
     return vendor;
 }
 
+
+/* All of these use xcb_get_setup
+ * The reason we can is because the access is essential O(1)
+ * This is because xcb_get_setup() simply calls a error check and returns a adress
+ * display->setup basically
+ */
+
+inline const XCBSetup *
+XCBGetSetup(XCBConnection *display)
+{
+    return xcb_get_setup(display);
+}
+
+inline XCBScreen *
+XCBGetScreen(XCBConnection *display)
+{
+    return xcb_setup_roots_iterator(xcb_get_setup(display)).data;
+}
+
+inline int
+XCBRootWindow(XCBConnection *display, int screen)
+{
+    /* Gets the screen structure */
+    return xcb_aux_get_screen(display, screen)->root;
+}
+inline int
+XCBDisplayWidth(XCBConnection *display, int screen)
+{
+    /* Gets the screen structure */
+    return xcb_aux_get_screen(display, screen)->width_in_pixels;
+}
+inline int
+XCBDisplayHeight(XCBConnection *display, int screen)
+{
+    /* Gets the screen structure */
+    return xcb_aux_get_screen(display, screen)->height_in_pixels;
+}
+inline int
+XCBDefaultDepth(XCBConnection *display, int screen)
+{
+    /* Gets the screen structure */
+    return xcb_aux_get_screen(display, screen)->root_depth;
+}
+
+inline XCBCookie
+XCBSelectInput(XCBDisplay *display, XCBWindow window, unsigned long mask)
+{   
+    return xcb_change_window_attributes(display, window, XCB_CW_EVENT_MASK, &mask);
+}
+
+inline void
+XCBSync(XCBDisplay *display)
+{ 
+    /* "https://community.kde.org/Xcb"
+     * The xcb equivalent of XSync() is xcb_aux_sync(), which is in xcb-utils.
+     * The reason you won't find a sync function in libxcb is that there is no sync request in the X protocol. 
+     * Calling XSync() or xcb_aux_sync() is equivalent to calling XGetInputFocus() and throwing away the reply.
+     */
+    xcb_aux_sync(display);
+}
+
+inline XCBCookie
+XCBMoveWindow(XCBDisplay *display, XCBWindow window, long x, long y)
+{
+    const long values[] = { x, y };
+    const unsigned long mask = XCB_CONFIG_WINDOW_X | XCB_CONFIG_WINDOW_Y;
+    return xcb_configure_window(display, window, mask, values);
+}
+
+inline XCBCookie
+XCBMoveResizeWindow(XCBDisplay *display, XCBWindow window, long x, long y, unsigned long width, unsigned long height)
+{
+    const long values[] = { x, y, width, height };
+    const unsigned long mask = XCB_CONFIG_WINDOW_X|XCB_CONFIG_WINDOW_Y|XCB_CONFIG_WINDOW_WIDTH|XCB_CONFIG_WINDOW_HEIGHT;
+    return xcb_configure_window(display, window, mask, values);
+}
+
+inline XCBCookie
+XCBRaiseWindow(XCBDisplay *display, XCBWindow window)
+{
+    const unsigned long mask = XCB_STACK_MODE_ABOVE;
+    return xcb_configure_window(display, window, XCB_CONFIG_WINDOW_STACK_MODE, &mask);
+}
+
+XCBWindowAttributesCookie
+XGetWindowAttributesCookie(XCBDisplay *display, XCBWindow window)
+{
+    return xcb_get_window_attributes(display, window);
+}
+
+XCBWindowAttributes *
+XCBGetWindowAttributesReply(XCBDisplay *display, XCBWindowAttributesCookie cookie)
+{
+    XCBGenericError **e = NULL;
+    return xcb_get_window_attributes_reply(display, cookie, e);
+}
+
+XCBGeometryCookie
+XCBGetWindowGeometryCookie(XCBDisplay *display, XCBWindow window)
+{
+    return xcb_get_geometry(display, window);
+}
+
+XCBGeometry *
+XCBGetWindowGeometryReply(XCBDisplay *display, XCBGeometryCookie cookie)
+{
+    XCBGenericError **e = NULL;
+    return xcb_get_geometry_reply(display, cookie, e);
+}
 
 inline int 
 XCBProtocolVersion(XCBConnection *display)

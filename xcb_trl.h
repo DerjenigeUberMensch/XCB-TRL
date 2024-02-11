@@ -11,13 +11,36 @@
 
 typedef xcb_connection_t XCBConnection;
 typedef xcb_connection_t XCBDisplay;
+typedef xcb_setup_t XCBSetup;
 typedef xcb_screen_t XCBScreen;
 typedef xcb_window_t XCBWindow;
+
+
 typedef xcb_void_cookie_t XCBCookie;
+
+typedef xcb_get_window_attributes_cookie_t XCBWindowAttributesCookie;
+typedef xcb_get_window_attributes_cookie_t XCBAttributesCookie;
+typedef xcb_get_window_attributes_cookie_t XCBGetAttributesCookie;
+
+typedef xcb_get_geometry_cookie_t XCBGetGeometryCookie;
+typedef xcb_get_geometry_cookie_t XCBGeometryCookie;
+typedef xcb_get_geometry_cookie_t XCBWindowGeometryCookie;
+
+
+
+
+typedef xcb_get_window_attributes_reply_t XCBWindowAttributes;
+typedef xcb_get_window_attributes_reply_t XCBAttributes;
+typedef xcb_get_geometry_reply_t XCBGeometry;
+typedef xcb_get_geometry_reply_t XCBWindowGeometry;
+
+
 typedef xcb_gcontext_t XCBGC;
 typedef xcb_drawable_t XCBDrawable;
 typedef xcb_point_t XCBPoint;
 typedef xcb_generic_event_t XCBGenericEvent;
+
+typedef xcb_generic_error_t XCBGenericError;
 
 
 /* 
@@ -64,6 +87,12 @@ extern int XCBBitmapUnit(XCBConnection *display);
 extern int XCBBitmapBitOrder(XCBConnection *display);
 extern int XCBBitmapPad(XCBConnection *display);
 extern int XCBImageByteOrder(XCBConnection *display);
+
+
+/* Gets the screen setup struct AKA screen stuff */
+extern const XCBSetup *XCBGetSetup(XCBConnection *display);
+
+extern XCBScreen *XCBGetScreen(XCBConnection *display);
 
 extern int XCBRootOfScreen(XCBConnection *display);
 extern int XCB(XCBConnection *display);
