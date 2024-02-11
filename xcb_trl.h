@@ -65,7 +65,18 @@ extern void XCBCloseDisplay(XCBDisplay *display);
  * display: Specifies the connection to the X server.
  * return a connection number for the specified display. On a POSIX-conformant system, this is the file descriptor of the connection.
  */
-extern int XCBDisplayNumber(XCBConnection *display);
+extern int XCBDisplayNumber(XCBDisplay *display);
+/* 
+ * display: Specifies the connection to the X server.
+ * return a connection number for the specified display. On a POSIX-conformant system, this is the file descriptor of the connection.
+ */
+extern int XCBDisplayNumber(XCBDisplay *display);
+/*
+ */
+extern XCBScreen *XCBScreenOfDisplay(XCBDisplay *display, int scren);
+/*
+ */
+extern XCBScreen *XCBDefaultScreenOfDisplay(XCBDisplay *display, int scren);
 /*
  * display: Specifies the connection to the X server.
  * return the number of available screens.
@@ -95,6 +106,7 @@ extern int XCBBitmapPad(XCBDisplay *display);
 extern int XCBImageByteOrder(XCBDisplay *display);
 
 
+extern int XCBRootOfScreen(XCBDisplay *display);
 /* Gets the screen setup struct AKA screen stuff */
 extern const XCBSetup *XCBGetSetup(XCBDisplay *display);
 
@@ -104,6 +116,9 @@ extern XCBScreen *XCBGetScreen(XCBDisplay *display);
  * return the root window. 
  */
 extern XCBWindow XCBRootWindow(XCBDisplay *display, int screen);
+/*
+ */
+extern XCBWindow XCBDefaultRootWindow(XCBDisplay *display, int screen);
 /*  return the width of the screen in pixels
  */
 extern uint16_t XCBDisplayWidth(XCBDisplay *display, int screen);
@@ -112,26 +127,30 @@ extern uint16_t XCBDisplayWidth(XCBDisplay *display, int screen);
 extern uint16_t XCBDisplayHeight(XCBDisplay *display, int screen);
 extern uint8_t XCBDisplayDepth(XCBDisplay *display, int screen);
 extern XCBCookie XCBSelectInput(XCBDisplay *display, XCBWindow window, uint32_t mask);
+/*
+ */
+extern XCBCookie XCBChangeWindowAttributes(XCBDisplay *display, XCBWindow window, uint32_t mask, XCBWindowAttributes *window_attributes);
+extern uint32_t XCBBlackPixel(XCBDisplay *display, int screen);
+extern uint32_t XCBWhitePixel(XCBDisplay *display, int screen);
 /* syncs the display */
 extern void XCBSync(XCBDisplay *display);
 extern XCBCookie XCBMoveWindow(XCBDisplay *display, XCBWindow window, int32_t x, int32_t y);
 extern XCBCookie XCBMoveResizeWindow(XCBDisplay *display, XCBWindow window, int32_t x, int32_t y, uint32_t width, uint32_t height);
 extern XCBCookie XCBRaiseWindow(XCBDisplay *display, XCBWindow window);
 extern XCBCookie XCBLowerWindow(XCBDisplay *display, XCBWindow window);
+extern XCBCookie XCBRaiseWindowIf(XCBDisplay *display, XCBWindow window);
+extern XCBCookie XCBLowerWindowIf(XCBDisplay *display, XCBWindow window);
+extern XCBCookie XCBSetWindowBorderWidth(XCBDisplay *display, XCBWindow window, int32_t border_width);
+extern XCBCookie XCBSetSibling(XCBDisplay *display, XCBWindow window, XCBWindow sibling);
+
 extern XCBWindowAttributesCookie XGetWindowAttributesCookie(XCBDisplay *display, XCBWindow window);
 extern XCBWindowAttributes *XCBGetWindowAttributesReply(XCBDisplay *display, XCBWindowAttributesCookie cookie);
 extern XCBGeometryCookie XCBGetWindowGeometryCookie(XCBDisplay *display, XCBWindow window);
 extern XCBGeometry *XCBGetWindowGeometryReply(XCBDisplay *display, XCBGeometryCookie cookie);
 extern XCBPixmap XCBCreatePixmap(XCBDisplay *display, XCBWindow root, unsigned int width, unsigned int height, unsigned short depth);
 
-
-extern int XCBRootOfScreen(XCBDisplay *display);
-extern int XCB(XCBDisplay *display);
-extern int XCB(XCBDisplay *display);
-
-
-
-
+extern XCBCursor XCBCreateFontCursor(XCBDisplay *display, int shape);
+extern XCBCookie XCBFreeCursor(XCBDisplay *display, XCBCursor cursor);
 
 /* 
  * Flushes buffered output to XServer.
