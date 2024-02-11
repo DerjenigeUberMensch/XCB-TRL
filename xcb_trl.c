@@ -1,13 +1,14 @@
 
-
 #include "xcb_trl.h"
 #include <xcb/xcb.h>
+#include <stdio.h>
+#include <string.h>
 
 
 inline XCBConnection *
-XCBOpenDisplay(const char *displayName, int *screenNumber)
+XCBOpenDisplay(const char *displayName, int *defaultScreenReturn)
 {
-    XCBConnection *display = xcb_connect(displayName, screenNumber);
+    XCBConnection *display = xcb_connect(displayName, defaultScreenReturn);
     /* We need to check return type cause xcb_connect never returns NULL (for some reason).
      * So we just check error, which requires display.
      */
@@ -25,6 +26,64 @@ XCBCloseDisplay(XCBConnection *display)
 {
     /* Closes connection and frees resulting data. */
     xcb_disconnect(display);
+}
+
+
+inline int 
+XCBConnectionNumber(XCBConnection *display)
+{
+    /* gets the file descriptor AKA the connection number */
+    return xcb_get_file_descriptor(display);
+}
+
+inline int 
+XCBScreenCount(XCBConnection *display)
+{
+    return xcb_setup_roots_iterator (xcb_get_setup (display)).rem;
+}
+
+char *
+XCBServerVendor(XCBConnection *display)
+{
+    char *vendor = NULL;
+    int length;
+
+    length = xcb_setup_vendor_length (xcb_get_setup (display));
+    vendor = (char *)malloc (length + 1);
+    if (vendor)
+        memcpy (vendor, xcb_setup_vendor (xcb_get_setup (display)), length);
+    vendor[length] = '\0';
+    return vendor;
+}
+
+
+inline int 
+XCBProtocolVersion(XCBConnection *display)
+{   return xcb_get_setup(display)->protocol_major_version;
+}
+inline int 
+XCBProtocolRevision(XCBConnection *display)
+{   return xcb_get_setup(display)->protocol_minor_version;
+}
+inline int
+XCBVendorRelease(XCBConnection *display)
+{   return xcb_get_setup (display)->release_number;
+}
+inline int
+XCBBitmapUnit(XCBConnection *display)
+{   return xcb_get_setup(display)->bitmap_format_scanline_unit;
+}
+inline int
+XCBBitmapBitOrder(XCBConnection *display)
+{   return xcb_get_setup(display)->bitmap_format_bit_order;
+}
+inline int
+XCBBitmapPad(XCBConnection *display)
+{   return xcb_get_setup(display)->bitmap_format_scanline_pad;
+}
+inline int
+XCBImageByteOrder(XCBConnection *display)
+{   return xcb_get_setup(display)->image_byte_order;
 }
 
 inline int 
@@ -199,4 +258,3 @@ XCBPrefetchMaximumRequestLength(XCBConnection *display)
 }
 
 xcb_generic_event_t *xcb_poll_for_queued_event(xcb_connection_t *c);
-

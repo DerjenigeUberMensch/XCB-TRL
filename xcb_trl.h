@@ -10,6 +10,7 @@
 #include <xcb/xcb_cursor.h>
 
 typedef xcb_connection_t XCBConnection;
+typedef xcb_connection_t XCBDisplay;
 typedef xcb_screen_t XCBScreen;
 typedef xcb_window_t XCBWindow;
 typedef xcb_void_cookie_t XCBCookie;
@@ -31,6 +32,47 @@ extern XCBConnection *XCBOpenDisplay(const char *displayName, int *screenNumber)
  * No side effects if display is NULL.
  */
 extern void XCBCloseDisplay(XCBConnection *display);
+/* 
+ * display: Specifies the connection to the X server.
+ * return a connection number for the specified display. On a POSIX-conformant system, this is the file descriptor of the connection.
+ */
+extern int XCBConnectionNumber(XCBConnection *display);
+/*
+ * display: Specifies the connection to the X server.
+ * return the number of available screens.
+ */
+extern int XCBScreenCount(XCBConnection *display);
+/*
+ * return a pointer to a string that provides some identification of the owner of the X server implementation. If the data returned by the server is in the Latin Portable Character Encoding, then the string is in the Host Portable Character Encoding. Otherwise, the contents of the string are implementation dependent.
+ * MUST BE FREED BY CALLING free()
+ */
+extern char *XCBServerVendor(XCBConnection *display);
+/*  display Specifies the connection to the X server.
+ *  return the major version number (11) of the X protocol associated with the connected display. 
+ */
+extern int XCBProtocolVersion(XCBConnection *display);
+/* display 	Specifies the connection to the X server.
+ * return the minor protocol revision number of the X server.
+ */
+extern int XCBProtocolRevision(XCBConnection *display);
+/*
+ * display 	Specifies the connection to the X server.
+ * return a number related to a vendor's release of the X server.
+ */
+extern int XCBVendorRelease(XCBConnection *display);
+extern int XCBBitmapUnit(XCBConnection *display);
+extern int XCBBitmapBitOrder(XCBConnection *display);
+extern int XCBBitmapPad(XCBConnection *display);
+extern int XCBImageByteOrder(XCBConnection *display);
+
+extern int XCBRootOfScreen(XCBConnection *display);
+extern int XCB(XCBConnection *display);
+extern int XCB(XCBConnection *display);
+
+
+
+
+
 /* 
  * Flushes buffered output to XServer.
  * Blocks Until buffer is fully flushed.
@@ -140,7 +182,7 @@ extern XCBCookie XCBMapWindow(XCBConnection *display, XCBWindow window);
 extern XCBWindow XCBCreateWindow(XCBConnection *display);
 
 /* GC */
-extern XCBGC XCBCreateGC();
+extern XCBGC XCBCreateGC(void);
 /* Valuemasks
 XCB_GC_FUNCTION
 XCB_GC_PLANE_MASK
