@@ -9,44 +9,112 @@
 #include <xcb/xcb_keysyms.h>
 #include <xcb/xcb_cursor.h>
 
-
+/*
+ *
+ */
 typedef xcb_connection_t XCBConnection;
+/*
+ *
+ */
 typedef xcb_connection_t XCBDisplay;
+/*
+ *
+ */
 typedef xcb_setup_t XCBSetup;
+/* 
+ * 
+*/
+typedef xcb_screen_iterator_t XCBScreenIterator;
+/*
+ *
+ */
 typedef xcb_screen_t XCBScreen;
+/*
+ *
+ */
 typedef xcb_window_t XCBWindow;
+/* 
+ *
+*/
 typedef xcb_cursor_t XCBCursor;
-
-
+/* 
+ *
+*/
 typedef xcb_void_cookie_t XCBCookie;
+/* 
+ *
+*/
 
 typedef xcb_get_window_attributes_cookie_t XCBWindowAttributesCookie;
+/* 
+ *
+*/
 typedef xcb_get_window_attributes_cookie_t XCBAttributesCookie;
+/* 
+ *
+*/
 typedef xcb_get_window_attributes_cookie_t XCBGetAttributesCookie;
-
+/* 
+ *
+*/
 typedef xcb_get_geometry_cookie_t XCBGetGeometryCookie;
+/* 
+ *
+*/
 typedef xcb_get_geometry_cookie_t XCBGeometryCookie;
+/* 
+ *
+*/
 typedef xcb_get_geometry_cookie_t XCBWindowGeometryCookie;
-
-
-
+/* 
+ *
+*/
 typedef xcb_query_extension_cookie_t XCBExtensionCookie;
+/* 
+ *
+*/
 typedef xcb_query_extension_reply_t XCBExtensionReply;
-
-
+/* 
+ *
+*/
 typedef xcb_get_window_attributes_reply_t XCBWindowAttributes;
+/* 
+ *
+*/
 typedef xcb_get_window_attributes_reply_t XCBAttributes;
+/* 
+ *
+*/
 typedef xcb_get_geometry_reply_t XCBGeometry;
+/* 
+ *
+*/
 typedef xcb_get_geometry_reply_t XCBWindowGeometry;
-
-
+/* 
+ *
+*/
 typedef xcb_pixmap_t XCBPixmap;
+/* 
+ *
+*/
 typedef xcb_gcontext_t XCBGC;
+/* 
+ *
+*/
 typedef xcb_drawable_t XCBDrawable;
+/* 
+ *
+*/
 typedef xcb_point_t XCBPoint;
+/* 
+ *
+*/
 typedef xcb_generic_event_t XCBGenericEvent;
-
+/* 
+ *
+*/
 typedef xcb_generic_error_t XCBGenericError;
+
 
 
 /* 
@@ -204,6 +272,7 @@ extern char *XCBGetErrorText(XCBDisplay *display);
 
 /* 
  * Gets and returns the next Event from the XServer
+ * This returns a structure called xcb_generic_event_t
  * This Function Blocks until a request is received
  *
  * RETURN: XCBGenericEvent * on Success
@@ -213,6 +282,7 @@ extern char *XCBGetErrorText(XCBDisplay *display);
 XCBGenericEvent *XCBNextEvent(XCBDisplay *display);
 /* 
  * Gets and returns the next Event from the XServer
+ * This returns a structure called xcb_generic_event_t
  * This Function Blocks until a request is received
  *
  * RETURN: XCBGenericEvent * on Success
@@ -254,11 +324,17 @@ XCBGenericEvent *XCBPollForQueuedEvent(xcb_connection_t *c);
 
 
 
-/* mapping */
+/* This function sends a event to the XServer to map the window specified
+ * This request isnt received immediatly;
+ * For an immediate request to the XServer xcb_flush() must be called; 
+ * USE xcb_flush with caution
+ *
+ * RETURN: Cookie to request
+ */
 extern XCBCookie XCBMapWindow(XCBDisplay *display, XCBWindow window);
 
 /* windows*/
-extern XCBWindow XCBCreateWindow(XCBDisplay *display);
+extern XCBWindow XCBCreateWindow(XCBDisplay *display, XCBWindow parent, int x, int y, unsigned int width, unsigned int height, int border_width, uint8_t depth, unsigned int class, uint32_t valuemask, const uint32_t *value_list)
 
 /* GC */
 extern XCBGC XCBCreateGC(void);

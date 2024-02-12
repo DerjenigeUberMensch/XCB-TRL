@@ -497,7 +497,7 @@ XCBMapWindow(XCBDisplay display, XCBWindow window)
 inline XCBWindow 
 XCBCreateWindow(XCBDisplay *display, XCBWindow parent, 
 int x, int y, unsigned int width, unsigned int height, int border_width, 
-int depth, unsigned int class, unsigned long valuemask)
+u8 depth, unsigned int class, u32 valuemask, const u32 *value_list)
 {
     const XCBWindow id = xcb_generate_id(display);
     const void *used = NULL;
