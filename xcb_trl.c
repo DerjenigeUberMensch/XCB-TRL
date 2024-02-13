@@ -404,6 +404,20 @@ XCBFreeCursor(XCBDisplay *display, XCBCursor cursor)
     return xcb_free_cursor(display, cursor);
 }
 
+
+inline XCBCookie
+XCBOpenFont(XCBDisplay *display, XCBFont id, const char *name)
+{
+    const u16 len = strlen(name);
+    return xcb_open_font(display, id, len, name);
+}
+
+inline XCBCookie
+XCBCloseFont(XCBDisplay *display, XCBFont id)
+{
+    return xcb_close_font(display, id);
+}
+
 inline int 
 XCBFlush(XCBDisplay *display)
 {

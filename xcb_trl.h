@@ -38,8 +38,13 @@ typedef xcb_pixmap_t XCBPixmap;
 typedef xcb_gcontext_t XCBGC;
 typedef xcb_drawable_t XCBDrawable;
 typedef xcb_point_t XCBPoint;
+typedef xcb_font_t XCBFont;
 typedef xcb_generic_event_t XCBGenericEvent;
 typedef xcb_generic_error_t XCBGenericError;
+
+
+
+
 
 /* 
  * Opens the display and returns a XCBDisplay* on Success.
@@ -143,6 +148,15 @@ extern XCBPixmap XCBCreatePixmap(XCBDisplay *display, XCBWindow root, unsigned i
 
 extern XCBCursor XCBCreateFontCursor(XCBDisplay *display, int shape);
 extern XCBCookie XCBFreeCursor(XCBDisplay *display, XCBCursor cursor);
+
+
+
+/* fonts */
+/**/
+extern XCBCookie XCBOpenFont(XCBDisplay *display, XCBFont id, const char *name);
+
+
+
 
 /* 
  * Flushes buffered output to XServer.
