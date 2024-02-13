@@ -9,113 +9,37 @@
 #include <xcb/xcb_keysyms.h>
 #include <xcb/xcb_cursor.h>
 
-/*
- *
- */
 typedef xcb_connection_t XCBConnection;
-/*
- *
- */
 typedef xcb_connection_t XCBDisplay;
-/*
- *
- */
 typedef xcb_setup_t XCBSetup;
-/* 
- * 
-*/
 typedef xcb_screen_iterator_t XCBScreenIterator;
-/*
- *
- */
 typedef xcb_screen_t XCBScreen;
-/*
- *
- */
 typedef xcb_window_t XCBWindow;
-/* 
- *
-*/
 typedef xcb_cursor_t XCBCursor;
-/* 
- *
-*/
 typedef xcb_void_cookie_t XCBCookie;
-/* 
- *
-*/
+typedef xcb_intern_atom_cookie_t XCBAtomCookie;
+typedef xcb_atom_t XCBAtom;
+
+typedef xcb_visualid_t XCBVisualId;
 
 typedef xcb_get_window_attributes_cookie_t XCBWindowAttributesCookie;
-/* 
- *
-*/
 typedef xcb_get_window_attributes_cookie_t XCBAttributesCookie;
-/* 
- *
-*/
 typedef xcb_get_window_attributes_cookie_t XCBGetAttributesCookie;
-/* 
- *
-*/
 typedef xcb_get_geometry_cookie_t XCBGetGeometryCookie;
-/* 
- *
-*/
 typedef xcb_get_geometry_cookie_t XCBGeometryCookie;
-/* 
- *
-*/
 typedef xcb_get_geometry_cookie_t XCBWindowGeometryCookie;
-/* 
- *
-*/
 typedef xcb_query_extension_cookie_t XCBExtensionCookie;
-/* 
- *
-*/
 typedef xcb_query_extension_reply_t XCBExtensionReply;
-/* 
- *
-*/
 typedef xcb_get_window_attributes_reply_t XCBWindowAttributes;
-/* 
- *
-*/
 typedef xcb_get_window_attributes_reply_t XCBAttributes;
-/* 
- *
-*/
 typedef xcb_get_geometry_reply_t XCBGeometry;
-/* 
- *
-*/
 typedef xcb_get_geometry_reply_t XCBWindowGeometry;
-/* 
- *
-*/
 typedef xcb_pixmap_t XCBPixmap;
-/* 
- *
-*/
 typedef xcb_gcontext_t XCBGC;
-/* 
- *
-*/
 typedef xcb_drawable_t XCBDrawable;
-/* 
- *
-*/
 typedef xcb_point_t XCBPoint;
-/* 
- *
-*/
 typedef xcb_generic_event_t XCBGenericEvent;
-/* 
- *
-*/
 typedef xcb_generic_error_t XCBGenericError;
-
-
 
 /* 
  * Opens the display and returns a XCBDisplay* on Success.
@@ -208,7 +132,7 @@ extern XCBCookie XCBRaiseWindow(XCBDisplay *display, XCBWindow window);
 extern XCBCookie XCBLowerWindow(XCBDisplay *display, XCBWindow window);
 extern XCBCookie XCBRaiseWindowIf(XCBDisplay *display, XCBWindow window);
 extern XCBCookie XCBLowerWindowIf(XCBDisplay *display, XCBWindow window);
-extern XCBCookie XCBSetWindowBorderWidth(XCBDisplay *display, XCBWindow window, int32_t border_width);
+extern XCBCookie XCBSetWindowBorderWidth(XCBDisplay *display, XCBWindow window, uint32_t border_width);
 extern XCBCookie XCBSetSibling(XCBDisplay *display, XCBWindow window, XCBWindow sibling);
 
 extern XCBWindowAttributesCookie XGetWindowAttributesCookie(XCBDisplay *display, XCBWindow window);
@@ -334,10 +258,11 @@ XCBGenericEvent *XCBPollForQueuedEvent(xcb_connection_t *c);
 extern XCBCookie XCBMapWindow(XCBDisplay *display, XCBWindow window);
 
 /* windows*/
-extern XCBWindow XCBCreateWindow(XCBDisplay *display, XCBWindow parent, int x, int y, unsigned int width, unsigned int height, int border_width, uint8_t depth, unsigned int class, uint32_t valuemask, const uint32_t *value_list)
-
+extern XCBWindow XCBCreateWindow(XCBDisplay *display, XCBWindow parent, int x, int y, unsigned int width, unsigned int height, int border_width, uint8_t depth, unsigned int _class, XCBVisualId visual, uint32_t valuemask, const uint32_t *value_list);
 /* GC */
-extern XCBGC XCBCreateGC(void);
+extern XCBGC XCBCreateGC(XCBDisplay *display, XCBDrawable drawable, 
+uint32_t valuemask, const void *valuelist);
+
 /* Valuemasks
 XCB_GC_FUNCTION
 XCB_GC_PLANE_MASK
@@ -363,7 +288,7 @@ XCB_GC_DASH_OFFSET
 XCB_GC_DASH_LIST
 XCB_GC_ARC_MODE
 */
-extern XCBCookie XCBChangeGC(XCBDisplay *display, XCBGC gc, unsigned long valuemask, unsigned long valuelist);
+extern XCBCookie XCBChangeGC(XCBDisplay *display, XCBGC gc, uint32_t valuemask, const void *valuelist);
 
 
 

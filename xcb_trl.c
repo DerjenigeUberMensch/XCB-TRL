@@ -35,11 +35,6 @@ screen_of_display(XCBDisplay *display, int screen)
     return NULL;
 }
 
-
-
-
-
-
 inline XCBDisplay *
 XCBOpenDisplay(const char *displayName, int *defaultScreenReturn)
 {
@@ -100,13 +95,15 @@ char *
 XCBServerVendor(XCBDisplay *display)
 {
     char *vendor = NULL;
-    int length;
+    int length = 0;
 
     length = xcb_setup_vendor_length (xcb_get_setup (display));
     vendor = (char *)malloc (length + 1);
     if (vendor)
+    {
         memcpy (vendor, xcb_setup_vendor (xcb_get_setup (display)), length);
-    vendor[length] = '\0';
+        vendor[length] = '\0';
+    }
     return vendor;
 }
 
@@ -119,7 +116,8 @@ XCBServerVendor(XCBDisplay *display)
 
 inline int 
 XCBProtocolVersion(XCBDisplay *display)
-{   return xcb_get_setup(display)->protocol_major_version;
+{
+    return xcb_get_setup(display)->protocol_major_version;
 }
 inline int 
 XCBProtocolRevision(XCBDisplay *display)
@@ -341,6 +339,29 @@ XCBGetWindowGeometryReply(XCBDisplay *display, XCBGeometryCookie cookie)
     return xcb_get_geometry_reply(display, cookie, e);
 }
 
+
+inline XCBAtomCookie
+XCBInternalAtomCookie(XCBDisplay *display, const char *name, int only_if_exists)
+{
+    return xcb_intern_atom(display, only_if_exists, strlen(name), name);
+}
+
+inline XCBAtom
+XCBInternalAtomReply(XCBDisplay *display, XCBAtomCookie cookie)
+{
+    XCBGenericError **e = NULL;
+    xcb_intern_atom_reply_t *reply = xcb_intern_atom_reply(display, cookie, e);
+    xcb_atom_t atom = 0;
+    if(reply)
+    {
+        atom = reply->atom;
+        free(reply);
+    }
+    return atom;
+}
+
+
+
 inline XCBPixmap
 XCBCreatePixmap(XCBDisplay *display, XCBWindow root, unsigned int width, unsigned int height, unsigned short depth)
 {
@@ -350,6 +371,7 @@ XCBCreatePixmap(XCBDisplay *display, XCBWindow root, unsigned int width, unsigne
 }
 
 /* Cursors */
+
 inline XCBCursor
 XCBCreateFontCursor(XCBDisplay *display, int shape)
 {
@@ -382,10 +404,6 @@ XCBFreeCursor(XCBDisplay *display, XCBCursor cursor)
     return xcb_free_cursor(display, cursor);
 }
 
-
-
-
-
 inline int 
 XCBFlush(XCBDisplay *display)
 {
@@ -414,23 +432,6 @@ XCBGetMaximumRequestLength(XCBDisplay *display)
      */
     return xcb_get_maximum_request_length(display);
 }
-
-
-inline XCBGenericEvent *
-XCBPollForEvent(XCBDisplay *display)
-{
-    /* TODO */
-    /* If I/O error do something */
-    xcb_poll_for_event(display);
-}
-
-
-inline XCBGenericEvent *
-XCBPollForQueuedEvent(XCBDisplay *display)
-{
-    return xcb_poll_for_queued_event(display);
-}
-
 
 inline int
 XCBCheckDisplayError(XCBDisplay *display)
@@ -478,37 +479,44 @@ XCBWaitForEvent(XCBDisplay *display)
     return xcb_wait_for_event(display);
 }
 
+inline XCBGenericEvent *
+XCBPollForEvent(XCBDisplay *display)
+{
+    /* TODO */
+    /* If I/O error do something */
+   return  xcb_poll_for_event(display);
+}
 
-
-
-
-
-
+inline XCBGenericEvent *
+XCBPollForQueuedEvent(XCBDisplay *display)
+{
+    return xcb_poll_for_queued_event(display);
+}
 
 
 
 
 inline XCBCookie 
-XCBMapWindow(XCBDisplay display, XCBWindow window)
+XCBMapWindow(XCBDisplay *display, XCBWindow window)
 {
-    return xcb_map_window(display, window)
+    return xcb_map_window(display, window);
 }
 
 inline XCBWindow 
 XCBCreateWindow(XCBDisplay *display, XCBWindow parent, 
 int x, int y, unsigned int width, unsigned int height, int border_width, 
-u8 depth, unsigned int class, u32 valuemask, const u32 *value_list)
+u8 depth, unsigned int class, XCBVisualId visual, u32 valuemask, const u32 *value_list)
 {
     const XCBWindow id = xcb_generate_id(display);
     const void *used = NULL;
     xcb_create_window(display, depth, id, parent, x, y, width, height, border_width, 
-    class, visual, valuemask, used)
-    return 
+    class, visual, valuemask, used);
+    return id;
 }
 
 inline XCBGC 
 XCBCreateGC(XCBDisplay *display, XCBDrawable drawable, 
-unsigned long valuemask, unsigned long *valuelist)
+u32 valuemask, const void *valuelist)
 {
     const XCBGC id = xcb_generate_id(display);
     xcb_create_gc(display, id, drawable, valuemask, valuelist);
@@ -516,17 +524,16 @@ unsigned long valuemask, unsigned long *valuelist)
 }
 
 inline XCBCookie 
-XCBChangeGC(XCBDisplay *display, XCBGC gc, unsigned long valuemask, unsigned long *valuelist))
+XCBChangeGC(XCBDisplay *display, XCBGC gc, u32 valuemask, const void *valuelist)
 {
     return xcb_change_gc(display, gc, valuemask, valuelist);
 }
 
 inline XCBCookie 
-XCBDrawPoint(XCBDisplay *display, int coordinatemode, XCBDrawable drawable, XCBGC gc, unsigned long points_len, XCBPoint *points)
+XCBDrawPoint(XCBDisplay *display, u8 coordinatemode, XCBDrawable drawable, XCBGC gc, uint32_t points_len, XCBPoint *points)
 {
     return xcb_poly_point(display, coordinatemode, drawable, gc, points_len, points);
 }
-
 
 
 
