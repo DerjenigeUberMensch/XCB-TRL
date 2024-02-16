@@ -341,13 +341,13 @@ XCBGetWindowGeometryReply(XCBDisplay *display, XCBGeometryCookie cookie)
 
 
 inline XCBAtomCookie
-XCBInternalAtomCookie(XCBDisplay *display, const char *name, int only_if_exists)
+XCBInternAtomCookie(XCBDisplay *display, const char *name, int only_if_exists)
 {
     return xcb_intern_atom(display, only_if_exists, strlen(name), name);
 }
 
 inline XCBAtom
-XCBInternalAtomReply(XCBDisplay *display, XCBAtomCookie cookie)
+XCBInternAtomReply(XCBDisplay *display, XCBAtomCookie cookie)
 {
     XCBGenericError **e = NULL;
     xcb_intern_atom_reply_t *reply = xcb_intern_atom_reply(display, cookie, e);
@@ -508,6 +508,18 @@ XCBPollForQueuedEvent(XCBDisplay *display)
 }
 
 
+inline XCBPointerCookie
+XCBQueryPointerCookie(XCBDisplay *display, XCBWindow window)
+{
+    return xcb_query_pointer(display, window);
+}
+
+inline XCBPointerReply
+XCBQueryPointerReply(XCBDisplay *display, XCBPointerCookie cookie)
+{
+    XCBGenericError **err;
+    return xcb_query_pointer_reply(display, cookie, err);
+}
 
 
 inline XCBCookie 
@@ -528,7 +540,7 @@ u8 depth, unsigned int class, XCBVisualId visual, u32 valuemask, const u32 *valu
     return id;
 }
 
-inline XCBGC 
+inline XCBGC
 XCBCreateGC(XCBDisplay *display, XCBDrawable drawable, 
 u32 valuemask, const void *valuelist)
 {
@@ -536,6 +548,36 @@ u32 valuemask, const void *valuelist)
     xcb_create_gc(display, id, drawable, valuemask, valuelist);
     return id;
 }
+
+inline int
+XCBSetLineAttributes(XCBDisplay *display, XCBGC gc, u32 linewidth, u32 linestyle, u32 capstyle, u32 joinstyle)
+{
+    u32 gcvalist[3];
+    int index = 0;
+    //gcvalist = { linestyle, capstyle, joinstyle };
+    u32 mask = 0;
+    if(linewidth)
+    {   mask |= XCB_GC_LINE_WIDTH;
+        gcvalist[index++] = linewidth;
+    }
+    if(capstyle)
+    {   mask |= XCB_GC_CAP_STYLE;
+        gcvalist[index++] = capstyle;
+    }
+    if(joinstyle)
+    {   mask |= XCB_GC_JOIN_STYLE; 
+        gcvalist[index++] = joinstyle;
+    }
+
+    /* This returns a cookie but changing the gc isnt doesnt really require a reply as you are directly manupulating your own gc
+     * However the XServer Doesnt know that yet which is why a cookie is returned
+     * (void) is cast cause we dont care about the cookie i.e. unused
+     */
+    (void)xcb_change_gc(display, gc, mask, gcvalist);
+    /* X11 src/SetLStyle.c always returns 1 (for some reason) */
+    return 1;
+}
+
 
 inline XCBCookie 
 XCBChangeGC(XCBDisplay *display, XCBGC gc, u32 valuemask, const void *valuelist)
