@@ -8,6 +8,8 @@
 #include <xcb/xcb_ewmh.h>
 #include <xcb/xcb_keysyms.h>
 #include <xcb/xcb_cursor.h>
+#include <xcb/xinerama.h>
+
 
 typedef xcb_connection_t XCBConnection;
 typedef xcb_connection_t XCBDisplay;
@@ -41,6 +43,21 @@ typedef xcb_point_t XCBPoint;
 typedef xcb_font_t XCBFont;
 typedef xcb_generic_event_t XCBGenericEvent;
 typedef xcb_generic_error_t XCBGenericError;
+
+typedef xcb_query_pointer_cookie_t XCBPointerCookie;
+typedef xcb_query_pointer_reply_t XCBPointerReply;
+
+/* Xinerama */
+
+typedef xcb_xinerama_screen_info_t XCBXineramaScreenInfo;
+typedef xcb_xinerama_is_active_cookie_t XCBXineramaIsActiveCookie;
+typedef xcb_xinerama_is_active_reply_t XCBXineramaIsActiveReply;
+
+typedef xcb_xinerama_query_screens_reply_t XCBXineramaQueryScreensReply;
+typedef xcb_xinerama_query_screens_cookie_t XCBXineramaQueryScreensCookie;
+
+
+
 
 
 
@@ -123,6 +140,7 @@ extern uint16_t XCBDisplayWidth(XCBDisplay *display, int screen);
  */
 extern uint16_t XCBDisplayHeight(XCBDisplay *display, int screen);
 extern uint8_t XCBDisplayDepth(XCBDisplay *display, int screen);
+extern uint8_t XCBDefaultDepth(XCBDisplay *display, int screen);
 extern XCBCookie XCBSelectInput(XCBDisplay *display, XCBWindow window, uint32_t mask);
 /*
  */
@@ -139,6 +157,8 @@ extern XCBCookie XCBRaiseWindowIf(XCBDisplay *display, XCBWindow window);
 extern XCBCookie XCBLowerWindowIf(XCBDisplay *display, XCBWindow window);
 extern XCBCookie XCBSetWindowBorderWidth(XCBDisplay *display, XCBWindow window, uint32_t border_width);
 extern XCBCookie XCBSetSibling(XCBDisplay *display, XCBWindow window, XCBWindow sibling);
+extern XCBAtomCookie XCBInternAtomCookie(XCBDisplay *display, const char *name, int only_if_exists);
+extern XCBAtom XCBInternAtomReply(XCBDisplay *display, XCBAtomCookie cookie);
 
 extern XCBWindowAttributesCookie XGetWindowAttributesCookie(XCBDisplay *display, XCBWindow window);
 extern XCBWindowAttributes *XCBGetWindowAttributesReply(XCBDisplay *display, XCBWindowAttributesCookie cookie);
@@ -150,7 +170,8 @@ extern XCBCursor XCBCreateFontCursor(XCBDisplay *display, int shape);
 extern XCBCookie XCBFreeCursor(XCBDisplay *display, XCBCursor cursor);
 
 
-
+extern XCBPointerCookie XCBQueryPointerCookie(XCBDisplay *display);
+extern XCBPointerReply XCBQueryPointerReply(XCBDisplay *display, XCBPointerCookie cookie);
 /* fonts */
 /**/
 extern XCBCookie XCBOpenFont(XCBDisplay *display, XCBFont id, const char *name);
@@ -273,9 +294,13 @@ extern XCBCookie XCBMapWindow(XCBDisplay *display, XCBWindow window);
 
 /* windows*/
 extern XCBWindow XCBCreateWindow(XCBDisplay *display, XCBWindow parent, int x, int y, unsigned int width, unsigned int height, int border_width, uint8_t depth, unsigned int _class, XCBVisualId visual, uint32_t valuemask, const uint32_t *value_list);
+
+
 /* GC */
-extern XCBGC XCBCreateGC(XCBDisplay *display, XCBDrawable drawable, 
-uint32_t valuemask, const void *valuelist);
+/* RETURN: GC id (identification number) */
+extern XCBGC XCBCreateGC(XCBDisplay *display, XCBDrawable drawable, uint32_t valuemask, const void *valuelist);
+/* RETURN: 1, always cause why not */
+extern int XCBSetLineAttributes(XCBDisplay *display, XCBGC gc, uint32_t linewidth, uint32_t linestyle, uint32_t capstyle, uint32_t joinstyle);
 
 /* Valuemasks
 XCB_GC_FUNCTION
