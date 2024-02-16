@@ -319,7 +319,7 @@ XCBGetWindowAttributesCookie(XCBDisplay *display, XCBWindow window)
     return xcb_get_window_attributes(display, window);
 }
 
-inline XCBWindowAttributes *
+inline XCBWindowAttributesReply *
 XCBGetWindowAttributesReply(XCBDisplay *display, XCBWindowAttributesCookie cookie)
 {
     XCBGenericError **e = NULL;
@@ -552,22 +552,22 @@ u32 valuemask, const void *valuelist)
 inline int
 XCBSetLineAttributes(XCBDisplay *display, XCBGC gc, u32 linewidth, u32 linestyle, u32 capstyle, u32 joinstyle)
 {
-    u32 gcvalist[3];
-    int index = 0;
-    //gcvalist = { linestyle, capstyle, joinstyle };
+    u32 gcvalist[4];
+
+    u8 i = 0; /* This is the index; u8 just to save some bytes */
     u32 mask = 0;
-    if(linewidth)
-    {   mask |= XCB_GC_LINE_WIDTH;
-        gcvalist[index++] = linewidth;
-    }
-    if(capstyle)
-    {   mask |= XCB_GC_CAP_STYLE;
-        gcvalist[index++] = capstyle;
-    }
-    if(joinstyle)
-    {   mask |= XCB_GC_JOIN_STYLE; 
-        gcvalist[index++] = joinstyle;
-    }
+    mask |= XCB_GC_LINE_WIDTH;
+    gcvalist[i++] = linewidth;
+
+    mask |= XCB_GC_LINE_STYLE;
+    gcvalist[i++] = linewidth;
+
+    mask |= XCB_GC_CAP_STYLE;
+    gcvalist[i++] = capstyle;
+
+    mask |= XCB_GC_JOIN_STYLE; 
+    gcvalist[i++] = joinstyle;
+
 
     /* This returns a cookie but changing the gc isnt doesnt really require a reply as you are directly manupulating your own gc
      * However the XServer Doesnt know that yet which is why a cookie is returned
