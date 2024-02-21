@@ -1,3 +1,7 @@
+/**
+ * @file xcb_trl.h
+ * Code definitions.
+ */
 #ifndef XCB_PTL_TYPEDEF_H_
 #define XCB_PTL_TYPEDEF_H_
 
@@ -6,23 +10,82 @@
 #include <xcb/xcb_event.h>
 #include <xcb/xcbext.h>
 #include <xcb/xcb_ewmh.h>
+#include <xcb/xcb_icccm.h>
 #include <xcb/xcb_keysyms.h>
 #include <xcb/xcb_cursor.h>
 #include <xcb/xinerama.h>
 
 
+
+/* Ghosts */
+
+/*  FILE xcb_conn.c ;
+ *  PUBLIC: ;
+ *  int has_error -> This is Nonzero on error ;
+ *  XCBSetup *setup -> This is a struct pointer to the main display properties: {root, width, height...} ;
+ *  int fd -> This is short for file descriptor (AKA connection number) ;
+ *  PRIVATE: ;
+ *  pthread_mutex_t iolock -> This should be considered READONLY ;
+ *  _xcb_in in -> This should be considered READONLY ;
+ *  _xcb_out out -> This should be considered READONLY ;
+ *  _xcb_ext ext -> This should be considered READONLY ;
+ *  _xcb_xid xid -> This should be considered READONLY ;
+ */
 typedef xcb_connection_t XCBConnection;
+/*  FILE: src/xcb_conn.c ;
+ *  PUBLIC: ;
+ *  int has_error -> This is Nonzero on error ;
+ *  XCBSetup *setup -> This is a struct pointer to the main display properties: {root, width, height...} ;
+ *  int fd -> This is short for file descriptor (AKA connection number) ;
+ *  PRIVATE: ;
+ *  pthread_mutex_t iolock -> This should be considered READONLY ;
+ *  _xcb_in in -> This should be considered READONLY ;
+ *  _xcb_out out -> This should be considered READONLY ;
+ *  _xcb_ext ext -> This should be considered READONLY ;
+ *  _xcb_xid xid -> This should be considered READONLY ;
+ */
 typedef xcb_connection_t XCBDisplay;
+/* FILE: xcb/xcb.h ;
+ * PUBLIC: ;
+ * u8 status -> ;
+ * u16 protocol_major_version -> ;
+ * u16 protocol_minor_version -> ;
+ * u16 length -> ;
+ * u32 release_number -> ;
+ * u32 resource_id_base -> ;
+ * u32 resource_id_mask -> ;
+ * u32 motion_buffer_size -> ;
+ * u16 vendor_len -> ;
+ * u16 maximum_request_length -> ;
+ * u8  roots_len -> ;
+ * u8  pixmap_formats_len -> ;
+ * u8  image_byte_order -> ;
+ * u8  bitmap_format_bit_order -> ;
+ * u8  bitmap_format_scanline_unit -> ;
+ * u8  bitmap_format_scanline_pad -> ;
+ * XCBKeyCode min_keycode -> ;
+ * XCBKeyCode max_keycode -> ;
+ * PRIVATE: ;
+ * u8 pad0 -> This should be considered READONLY ;
+ * u8 pad1[4] -> This should be considered READONLY ;
+ */
 typedef xcb_setup_t XCBSetup;
 typedef xcb_screen_iterator_t XCBScreenIterator;
 typedef xcb_screen_t XCBScreen;
 typedef xcb_window_t XCBWindow;
 typedef xcb_cursor_t XCBCursor;
+typedef xcb_get_property_cookie_t XCBTextPropertyCookie;
+typedef xcb_icccm_get_text_property_reply_t XCBTextProperty;
 typedef xcb_void_cookie_t XCBCookie;
 typedef xcb_intern_atom_cookie_t XCBAtomCookie;
 typedef xcb_atom_t XCBAtom;
 
 typedef xcb_visualid_t XCBVisual;
+
+
+/* array of characters NEVER use as char */
+typedef char XCBClassHint;
+
 
 typedef xcb_get_window_attributes_cookie_t XCBWindowAttributesCookie;
 typedef xcb_get_window_attributes_cookie_t XCBAttributesCookie;
@@ -69,113 +132,140 @@ typedef xcb_xinerama_query_screens_cookie_t XCBXineramaQueryScreensCookie;
  * RETURN: NULL on Failure.
  * To check error use XCBGetErrorText() or see XCBCheckDisplayError() to get error number.
  */
-extern XCBDisplay *XCBOpenDisplay(const char *displayName, int *screenNumber);
+XCBDisplay *XCBOpenDisplay(const char *displayName, int *screenNumber);
 /* 
  * Closes the connection Specified and Frees the data associated with connection.
  * No side effects if display is NULL.
  */
-extern void XCBCloseDisplay(XCBDisplay *display);
+void XCBCloseDisplay(XCBDisplay *display);
 /* 
  * display: Specifies the connection to the X server.
  * return a connection number for the specified display. On a POSIX-conformant system, this is the file descriptor of the connection.
  */
-extern int XCBDisplayNumber(XCBDisplay *display);
+int XCBDisplayNumber(XCBDisplay *display);
 /* 
  * display: Specifies the connection to the X server.
  * return a connection number for the specified display. On a POSIX-conformant system, this is the file descriptor of the connection.
  */
-extern int XCBDisplayNumber(XCBDisplay *display);
+int XCBDisplayNumber(XCBDisplay *display);
 /*
  */
-extern XCBScreen *XCBScreenOfDisplay(XCBDisplay *display, int scren);
+XCBScreen *XCBScreenOfDisplay(XCBDisplay *display, int scren);
 /*
  */
-extern XCBScreen *XCBDefaultScreenOfDisplay(XCBDisplay *display, int scren);
+XCBScreen *XCBDefaultScreenOfDisplay(XCBDisplay *display, int scren);
 /*
  * display: Specifies the connection to the X server.
  * return the number of available screens.
  */
-extern int XCBScreenCount(XCBDisplay *display);
+int XCBScreenCount(XCBDisplay *display);
 /*
  * return a pointer to a string that provides some identification of the owner of the X server implementation. If the data returned by the server is in the Latin Portable Character Encoding, then the string is in the Host Portable Character Encoding. Otherwise, the contents of the string are implementation dependent.
  * MUST BE FREED BY CALLING free()
  */
-extern char *XCBServerVendor(XCBDisplay *display);
+char *XCBServerVendor(XCBDisplay *display);
 /*  display Specifies the connection to the X server.
  *  return the major version number (11) of the X protocol associated with the connected display. 
  */
-extern int XCBProtocolVersion(XCBDisplay *display);
+int XCBProtocolVersion(XCBDisplay *display);
 /* display 	Specifies the connection to the X server.
  * return the minor protocol revision number of the X server.
  */
-extern int XCBProtocolRevision(XCBDisplay *display);
+int XCBProtocolRevision(XCBDisplay *display);
 /*
  * display 	Specifies the connection to the X server.
  * return a number related to a vendor's release of the X server.
  */
-extern int XCBVendorRelease(XCBDisplay *display);
-extern int XCBBitmapUnit(XCBDisplay *display);
-extern int XCBBitmapBitOrder(XCBDisplay *display);
-extern int XCBBitmapPad(XCBDisplay *display);
-extern int XCBImageByteOrder(XCBDisplay *display);
+int XCBVendorRelease(XCBDisplay *display);
+int XCBBitmapUnit(XCBDisplay *display);
+int XCBBitmapBitOrder(XCBDisplay *display);
+int XCBBitmapPad(XCBDisplay *display);
+int XCBImageByteOrder(XCBDisplay *display);
 
 
-extern int XCBRootOfScreen(XCBDisplay *display);
+int XCBRootOfScreen(XCBDisplay *display);
 /* Gets the screen setup struct AKA screen stuff */
-extern const XCBSetup *XCBGetSetup(XCBDisplay *display);
+const XCBSetup *XCBGetSetup(XCBDisplay *display);
 
-extern XCBScreen *XCBGetScreen(XCBDisplay *display);
+XCBScreen *XCBGetScreen(XCBDisplay *display);
 /*
  * These are useful with functions that need a drawable of a particular screen and for creating top-level windows.
  * return the root window. 
  */
-extern XCBWindow XCBRootWindow(XCBDisplay *display, int screen);
+XCBWindow XCBRootWindow(XCBDisplay *display, int screen);
 /*
  */
-extern XCBWindow XCBDefaultRootWindow(XCBDisplay *display, int screen);
+XCBWindow XCBDefaultRootWindow(XCBDisplay *display, int screen);
 /*  return the width of the screen in pixels
  */
-extern uint16_t XCBDisplayWidth(XCBDisplay *display, int screen);
+uint16_t XCBDisplayWidth(XCBDisplay *display, int screen);
 /* return an integer that describes the height of the screen in pixels. 
  */
-extern uint16_t XCBDisplayHeight(XCBDisplay *display, int screen);
-extern uint8_t XCBDisplayDepth(XCBDisplay *display, int screen);
-extern uint8_t XCBDefaultDepth(XCBDisplay *display, int screen);
-extern XCBCookie XCBSelectInput(XCBDisplay *display, XCBWindow window, uint32_t mask);
+uint16_t XCBDisplayHeight(XCBDisplay *display, int screen);
+uint8_t XCBDisplayDepth(XCBDisplay *display, int screen);
+uint8_t XCBDefaultDepth(XCBDisplay *display, int screen);
+XCBCookie XCBSelectInput(XCBDisplay *display, XCBWindow window, uint32_t mask);
 /*
  */
-extern XCBCookie XCBChangeWindowAttributes(XCBDisplay *display, XCBWindow window, uint32_t mask, XCBWindowAttributes *window_attributes);
-extern uint32_t XCBBlackPixel(XCBDisplay *display, int screen);
-extern uint32_t XCBWhitePixel(XCBDisplay *display, int screen);
+XCBCookie XCBChangeWindowAttributes(XCBDisplay *display, XCBWindow window, uint32_t mask, XCBWindowAttributes *window_attributes);
+uint32_t XCBBlackPixel(XCBDisplay *display, int screen);
+uint32_t XCBWhitePixel(XCBDisplay *display, int screen);
 /* syncs the display */
-extern void XCBSync(XCBDisplay *display);
-extern XCBCookie XCBMoveWindow(XCBDisplay *display, XCBWindow window, int32_t x, int32_t y);
-extern XCBCookie XCBMoveResizeWindow(XCBDisplay *display, XCBWindow window, int32_t x, int32_t y, uint32_t width, uint32_t height);
-extern XCBCookie XCBRaiseWindow(XCBDisplay *display, XCBWindow window);
-extern XCBCookie XCBLowerWindow(XCBDisplay *display, XCBWindow window);
-extern XCBCookie XCBRaiseWindowIf(XCBDisplay *display, XCBWindow window);
-extern XCBCookie XCBLowerWindowIf(XCBDisplay *display, XCBWindow window);
-extern XCBCookie XCBSetWindowBorderWidth(XCBDisplay *display, XCBWindow window, uint32_t border_width);
-extern XCBCookie XCBSetSibling(XCBDisplay *display, XCBWindow window, XCBWindow sibling);
-extern XCBAtomCookie XCBInternAtomCookie(XCBDisplay *display, const char *name, int only_if_exists);
-extern XCBAtom XCBInternAtomReply(XCBDisplay *display, XCBAtomCookie cookie);
+void XCBSync(XCBDisplay *display);
+XCBCookie XCBMoveWindow(XCBDisplay *display, XCBWindow window, int32_t x, int32_t y);
+XCBCookie XCBMoveResizeWindow(XCBDisplay *display, XCBWindow window, int32_t x, int32_t y, uint32_t width, uint32_t height);
+XCBCookie XCBRaiseWindow(XCBDisplay *display, XCBWindow window);
+XCBCookie XCBMapRaised(XCBDisplay *display, XCBWindow window);
+XCBCookie XCBLowerWindow(XCBDisplay *display, XCBWindow window);
+XCBCookie XCBRaiseWindowIf(XCBDisplay *display, XCBWindow window);
+XCBCookie XCBLowerWindowIf(XCBDisplay *display, XCBWindow window);
+XCBCookie XCBSetWindowBorderWidth(XCBDisplay *display, XCBWindow window, uint32_t border_width);
+XCBCookie XCBSetSibling(XCBDisplay *display, XCBWindow window, XCBWindow sibling);
+XCBAtomCookie XCBInternAtomCookie(XCBDisplay *display, const char *name, int only_if_exists);
+XCBAtom XCBInternAtomReply(XCBDisplay *display, XCBAtomCookie cookie);
 
-extern XCBWindowAttributesCookie XGetWindowAttributesCookie(XCBDisplay *display, XCBWindow window);
-extern XCBWindowAttributesReply *XCBGetWindowAttributesReply(XCBDisplay *display, XCBWindowAttributesCookie cookie);
-extern XCBGeometryCookie XCBGetWindowGeometryCookie(XCBDisplay *display, XCBWindow window);
-extern XCBGeometry *XCBGetWindowGeometryReply(XCBDisplay *display, XCBGeometryCookie cookie);
-extern XCBPixmap XCBCreatePixmap(XCBDisplay *display, XCBWindow root, unsigned int width, unsigned int height, unsigned short depth);
+XCBWindowAttributesCookie XGetWindowAttributesCookie(XCBDisplay *display, XCBWindow window);
+XCBWindowAttributesReply *XCBGetWindowAttributesReply(XCBDisplay *display, XCBWindowAttributesCookie cookie);
+XCBGeometryCookie XCBGetWindowGeometryCookie(XCBDisplay *display, XCBWindow window);
+XCBGeometry *XCBGetWindowGeometryReply(XCBDisplay *display, XCBGeometryCookie cookie);
+XCBPixmap XCBCreatePixmap(XCBDisplay *display, XCBWindow root, unsigned int width, unsigned int height, unsigned short depth);
 
-extern XCBCursor XCBCreateFontCursor(XCBDisplay *display, int shape);
-extern XCBCookie XCBFreeCursor(XCBDisplay *display, XCBCursor cursor);
+XCBCursor XCBCreateFontCursor(
+        XCBDisplay *display, 
+        int shape);
+XCBCookie XCBDefineCursor(
+        XCBDisplay *display, 
+        XCBWindow window, XCBCursor id);
+
+XCBCookie XCBFreeCursor(
+        XCBDisplay *display, 
+        XCBCursor cursor);
 
 
-extern XCBPointerCookie XCBQueryPointerCookie(XCBDisplay *display);
-extern XCBPointerReply XCBQueryPointerReply(XCBDisplay *display, XCBPointerCookie cookie);
+XCBPointerCookie XCBQueryPointerCookie(
+        XCBDisplay *display, 
+        XCBWindow window);
+
+XCBPointerReply *XCBQueryPointerReply(
+        XCBDisplay *display, 
+        XCBPointerCookie cookie);
 /* fonts */
 /**/
-extern XCBCookie XCBOpenFont(XCBDisplay *display, XCBFont id, const char *name);
+XCBCookie XCBOpenFont(
+        XCBDisplay *display, 
+        XCBFont id, const char *name);
 
+
+/* text props */
+XCBTextPropertyCookie XCBGetTextPropertyCookie(XCBDisplay *display, XCBWindow window, XCBAtom property);
+/* 
+ * resulting data ON Success MUST be freed using XCBFreeTextProperty()
+ * RETURN: 
+ * 1 -> Success.
+ * 0 -> Failure.
+ */
+int XCBGetTextPropertyReply(XCBDisplay *display, XCBTextPropertyCookie cookie, XCBTextProperty *reply_return);
+void XCBFreeTextProperty(XCBTextProperty *prop);
 
 
 
@@ -186,7 +276,8 @@ extern XCBCookie XCBOpenFont(XCBDisplay *display, XCBFont id, const char *name);
  * RETURN: 0 on Success.
  * RETURN: 1 on Failure.
  */ 
-extern int XCBFlush(XCBDisplay *display);
+int XCBFlush(
+        XCBDisplay *display);
 
 /*
  * Gets the maximum data that a XCBDisplay* can hold in bytes / 4.
@@ -202,7 +293,8 @@ extern int XCBFlush(XCBDisplay *display);
  * 
  * RETURN: Max Request length in (bytes / 4)
  */
-extern unsigned long XCBGetMaximumRequestLength(XCBDisplay *display);
+unsigned long XCBGetMaximumRequestLength(
+        XCBDisplay *display);
 
 
 
@@ -214,11 +306,16 @@ extern unsigned long XCBGetMaximumRequestLength(XCBDisplay *display);
  * RETURN: XCB_CONN_CLOSED_PARSE_ERR, error during parsing display string.
  * RETURN: XCB_CONN_CLOSED_INVALID_SCREEN, because the server does not have a screen matching the display.
  */
-extern int XCBCheckDisplayError(XCBDisplay *display);
-extern void XCBSetIOErrorHandler(XCBDisplay *display, void *IOHandler);
+int XCBCheckDisplayError(
+        XCBDisplay *display);
+
+void XCBSetIOErrorHandler(
+        XCBDisplay *display, 
+        void *IOHandler);
 
 /* TODO */
-extern char *XCBGetErrorText(XCBDisplay *display);
+char *XCBGetErrorText(
+        XCBDisplay *display);
 
 
 
@@ -234,7 +331,8 @@ extern char *XCBGetErrorText(XCBDisplay *display);
  * RETURN: XCBGenericError * on Error
  * RETURN: NULL on I/O Error
  */
-XCBGenericEvent *XCBNextEvent(XCBDisplay *display);
+XCBGenericEvent *XCBNextEvent(
+        XCBDisplay *display);
 /* 
  * Gets and returns the next Event from the XServer
  * This returns a structure called xcb_generic_event_t
@@ -244,7 +342,8 @@ XCBGenericEvent *XCBNextEvent(XCBDisplay *display);
  * RETURN: XCBGenericError * on Error
  * RETURN: NULL on I/O Error
  */
-XCBGenericEvent *XCBWaitForEvent(XCBDisplay *display);
+XCBGenericEvent *XCBWaitForEvent(
+        XCBDisplay *display);
 
 /**
  * @brief Returns the next event or error from the server.
@@ -257,7 +356,8 @@ XCBGenericEvent *XCBWaitForEvent(XCBDisplay *display);
  * attempting to read the next event, in which case the connection is
  * shut down when this function returns.
  */
-XCBGenericEvent *XCBPollForEvent(xcb_connection_t *c);
+XCBGenericEvent *XCBPollForEvent(
+        xcb_connection_t *c);
 /** <Straight from the documentation.>
  * @brief Returns the next event without reading from the connection.
  * @param c The connection to the X server.
@@ -272,7 +372,8 @@ XCBGenericEvent *XCBPollForEvent(xcb_connection_t *c);
  * example, callers might use xcb_wait_for_reply and be interested
  * only of events that preceded a specific reply.
  */
-XCBGenericEvent *XCBPollForQueuedEvent(xcb_connection_t *c);
+XCBGenericEvent *XCBPollForQueuedEvent(
+        xcb_connection_t *c);
 
 
 
@@ -286,15 +387,33 @@ XCBGenericEvent *XCBPollForQueuedEvent(xcb_connection_t *c);
  *
  * RETURN: Cookie to request
  */
-extern XCBCookie XCBMapWindow(XCBDisplay *display, XCBWindow window);
+XCBCookie XCBMapWindow(
+        XCBDisplay *display, 
+        XCBWindow window);
 
 /* windows*/
-extern XCBWindow XCBCreateWindow(XCBDisplay *display, XCBWindow parent, int x, int y, unsigned int width, unsigned int height, int border_width, uint8_t depth, unsigned int _class, XCBVisual visual, uint32_t valuemask, const uint32_t *value_list);
+XCBWindow XCBCreateWindow(
+        XCBDisplay *display, 
+        XCBWindow parent, 
+        int x, 
+        int y, 
+        unsigned int width, 
+        unsigned int height, 
+        int border_width, 
+        uint8_t depth, 
+        unsigned int _class, 
+        XCBVisual visual, 
+        uint32_t valuemask, 
+        const uint32_t *value_list);
 
 
 /* GC */
 /* RETURN: GC id (identification number) */
-extern XCBGC XCBCreateGC(XCBDisplay *display, XCBDrawable drawable, uint32_t valuemask, const void *valuelist);
+XCBGC XCBCreateGC(
+        XCBDisplay *display, 
+        XCBDrawable drawable, 
+        uint32_t valuemask, 
+        const void *valuelist);
 /* 
  * linewidth: measured in pixels and can be greater than or equal to one, a wide line, or the special value zero, a thin line.
  * linestyle: XCB_LINE_STYLE_SOLID          The full path of the line is drawn.
@@ -322,11 +441,34 @@ extern XCBGC XCBCreateGC(XCBDisplay *display, XCBDrawable drawable, uint32_t val
  *
  * RETURN: 1, always cause why not 
  */
-extern int XCBSetLineAttributes(XCBDisplay *display, XCBGC gc, uint32_t linewidth, uint32_t linestyle, uint32_t capstyle, uint32_t joinstyle);
+int XCBSetLineAttributes(
+        XCBDisplay *display, 
+        XCBGC gc, 
+        uint32_t linewidth, 
+        uint32_t linestyle, 
+        uint32_t capstyle, 
+        uint32_t joinstyle);
 
 
-
-extern int XCBSetClassHint(XCBDisplay *display, XCBWindow, XCBClassHint *classhint);
+XCBCookie XCBChangeProperty(
+        XCBDisplay *display,
+        XCBWindow window, 
+        XCBAtom property, 
+        XCBAtom type, 
+        uint8_t format, 
+        uint8_t mode, 
+        const void *data, 
+        uint32_t nelements);
+/* Sets the classhint for a specified window with class_name as the name hint similiar to XSetClassHint()
+ *
+ * NOTE: class_name does not protect against non terminating strings.
+ *
+ * RETURN: XCBCookie.
+ */
+XCBCookie XCBSetClassHint(
+                        XCBDisplay *display, 
+                        XCBWindow window, 
+                        const char *class_name);
 
 /* Valuemasks
 XCB_GC_FUNCTION
@@ -353,7 +495,7 @@ XCB_GC_DASH_OFFSET
 XCB_GC_DASH_LIST
 XCB_GC_ARC_MODE
 */
-extern XCBCookie XCBChangeGC(XCBDisplay *display, XCBGC gc, uint32_t valuemask, const void *valuelist);
+XCBCookie XCBChangeGC(XCBDisplay *display, XCBGC gc, uint32_t valuemask, const void *valuelist);
 
 
 
@@ -379,7 +521,7 @@ extern XCBCookie XCBChangeGC(XCBDisplay *display, XCBGC gc, uint32_t valuemask, 
  * xcb_prefetch_extension_data(c, &xcb_big_requests_id) and the reply
  * must have already arrived.
  */
-extern void XCBPrefetchMaximumRequestLength(XCBDisplay *display);
+void XCBPrefetchMaximumRequestLength(XCBDisplay *display);
 
 
 

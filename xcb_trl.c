@@ -1,7 +1,13 @@
+/**
+ * @file xcb_trl.c
+ * Code implementations.
+ */
+
 
 #include "xcb_trl.h"
 #include <xcb/xcb.h>
 #include <xcb/xcb_aux.h>
+#include <xcb/xcb_icccm.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -266,6 +272,13 @@ XCBRaiseWindow(XCBDisplay *display, XCBWindow window)
 }
 
 inline XCBCookie
+XCBMapRaised(XCBDisplay *display, XCBWindow window)
+{
+    xcb_map_window(display, window);
+    return XCBRaiseWindow(display, window);
+}
+
+inline XCBCookie
 XCBLowerWindow(XCBDisplay *display, XCBWindow window)
 {
     const u32 values = { XCB_STACK_MODE_BELOW };
@@ -404,6 +417,12 @@ XCBFreeCursor(XCBDisplay *display, XCBCursor cursor)
     return xcb_free_cursor(display, cursor);
 }
 
+inline XCBCookie
+XCBDefineCursor(XCBDisplay *display, XCBWindow window, XCBCursor id)
+{   
+    const u32 mask = XCB_CW_CURSOR;
+    return xcb_change_window_attributes(display, window, mask, &id);
+}
 
 inline XCBCookie
 XCBOpenFont(XCBDisplay *display, XCBFont id, const char *name)
@@ -416,6 +435,27 @@ inline XCBCookie
 XCBCloseFont(XCBDisplay *display, XCBFont id)
 {
     return xcb_close_font(display, id);
+}
+
+
+/* text property textproperty */
+
+inline XCBTextPropertyCookie
+XCBGetTextPropertyCookie(XCBDisplay *display, XCBWindow window, XCBAtom property)
+{
+    return xcb_icccm_get_text_property(display, window, property);
+}
+
+inline int 
+XCBGetTextPropertyReply(XCBDisplay *display, XCBTextPropertyCookie cookie, XCBTextProperty *reply_return)
+{
+    XCBGenericError **e = NULL;
+    return xcb_icccm_get_text_property_reply(display, cookie, reply_return, e);
+}
+inline void 
+XCBFreeTextProperty(XCBTextProperty *prop)
+{   
+    xcb_icccm_get_text_property_reply_wipe(prop);
 }
 
 inline int 
@@ -514,10 +554,10 @@ XCBQueryPointerCookie(XCBDisplay *display, XCBWindow window)
     return xcb_query_pointer(display, window);
 }
 
-inline XCBPointerReply
+inline XCBPointerReply *
 XCBQueryPointerReply(XCBDisplay *display, XCBPointerCookie cookie)
 {
-    XCBGenericError **err;
+    XCBGenericError **err = NULL;
     return xcb_query_pointer_reply(display, cookie, err);
 }
 
@@ -576,6 +616,19 @@ XCBSetLineAttributes(XCBDisplay *display, XCBGC gc, u32 linewidth, u32 linestyle
     (void)xcb_change_gc(display, gc, mask, gcvalist);
     /* X11 src/SetLStyle.c always returns 1 (for some reason) */
     return 1;
+}
+
+XCBCookie
+XCBChangeProperty(XCBDisplay *display, XCBWindow window, XCBAtom property, XCBAtom type, u8 format, u8 mode, const void *data, u32 nelements)
+{
+    return xcb_change_property(display, mode, window, property, type, format, nelements, data);
+}
+
+XCBCookie
+XCBSetClassHint(XCBDisplay *display, XCBWindow window, const char *class_name)
+{
+    const int len = strlen(class_name);
+    return xcb_icccm_set_wm_class(display, window, len, class_name);
 }
 
 
