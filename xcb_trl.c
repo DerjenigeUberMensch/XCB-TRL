@@ -618,13 +618,20 @@ XCBSetLineAttributes(XCBDisplay *display, XCBGC gc, u32 linewidth, u32 linestyle
     return 1;
 }
 
-XCBCookie
+inline XCBCookie
 XCBChangeProperty(XCBDisplay *display, XCBWindow window, XCBAtom property, XCBAtom type, u8 format, u8 mode, const void *data, u32 nelements)
 {
     return xcb_change_property(display, mode, window, property, type, format, nelements, data);
 }
 
-XCBCookie
+inline XCBCookie
+XCBDeleteProperty(XCBDisplay *display, XCBWindow window, XCBAtom property)
+{
+    return xcb_delete_property(display, window, property);
+}
+
+
+inline XCBCookie
 XCBSetClassHint(XCBDisplay *display, XCBWindow window, const char *class_name)
 {
     const int len = strlen(class_name);

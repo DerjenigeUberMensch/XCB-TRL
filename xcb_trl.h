@@ -459,6 +459,13 @@ XCBCookie XCBChangeProperty(
         uint8_t mode, 
         const void *data, 
         uint32_t nelements);
+
+XCBCookie
+XCBDeleteProperty(
+        XCBDisplay *display, 
+        XCBWindow window, 
+        XCBAtom property);
+
 /* Sets the classhint for a specified window with class_name as the name hint similiar to XSetClassHint()
  *
  * NOTE: class_name does not protect against non terminating strings.
