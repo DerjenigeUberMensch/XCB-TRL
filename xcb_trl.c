@@ -4,15 +4,28 @@
  */
 
 
+/* most of these implementations have been tanken from the tutorial, other websites, and or just straight reordering
+ * some however have been taken from the source itself
+ */
+
+
 #include "xcb_trl.h"
+
 #include <xcb/xcb.h>
 #include <xcb/xcb_aux.h>
 #include <xcb/xcb_icccm.h>
+#include <xcb/xcb_event.h>
+#include <xcb/xcbext.h>
+#include <xcb/xcb_ewmh.h>
+#include <xcb/xcb_keysyms.h>
+#include <xcb/xcb_cursor.h>
+#include <xcb/xinerama.h>
+#include <xcb/xcb_xrm.h>
+
+
+
 #include <stdio.h>
 #include <string.h>
-
-
-
 
 typedef uint8_t  u8;
 typedef uint16_t u16;
@@ -26,7 +39,7 @@ typedef int64_t  i64;
 
 
 /* HELPER FUNCTION */
-static inline XCBScreen *
+static XCBScreen *
 screen_of_display(XCBDisplay *display, int screen)
 {
     xcb_screen_iterator_t iter;
@@ -97,7 +110,7 @@ XCBScreenCount(XCBDisplay *display)
     return xcb_setup_roots_iterator (xcb_get_setup (display)).rem;
 }
 
-char *
+inline char *
 XCBServerVendor(XCBDisplay *display)
 {
     char *vendor = NULL;
@@ -388,8 +401,6 @@ XCBCreatePixmap(XCBDisplay *display, XCBWindow root, unsigned int width, unsigne
 inline XCBCursor
 XCBCreateFontCursor(XCBDisplay *display, int shape)
 {
-    xcb_font_t font;
-    xcb_cursor_t id;
     /* FORMAT IN RGB: (AKA RED GREEN BLUE) */
     /* fg = foreground; bg = background */
     const u16 fgred = 0;
@@ -400,10 +411,10 @@ XCBCreateFontCursor(XCBDisplay *display, int shape)
     const u16 bggreen = 0;
     const u16 bgblue = 0;
 
-    font = xcb_generate_id(display);
+    const xcb_font_t font = xcb_generate_id(display);
     xcb_open_font(display, font, strlen("cursor"), "cursor");
 
-    id = xcb_generate_id(display);
+    const xcb_cursor_t id = xcb_generate_id(display);
     xcb_create_glyph_cursor(display, id, font, font, shape, shape + 1,
                             fgred, fggreen, fgblue,
                             bgred, bggreen, bgblue
@@ -519,14 +530,14 @@ XCBGetErrorText(XCBDisplay *display)
 
 
 
-XCBGenericEvent *
+inline XCBGenericEvent *
 XCBNextEvent(XCBDisplay *display)
 {
     /* waits till next event happens before returning */
     return xcb_wait_for_event(display);
 }
 
-XCBGenericEvent *
+inline XCBGenericEvent *
 XCBWaitForEvent(XCBDisplay *display)
 {
     /* waits till next event happens before returning */
@@ -571,7 +582,7 @@ XCBMapWindow(XCBDisplay *display, XCBWindow window)
 inline XCBWindow 
 XCBCreateWindow(XCBDisplay *display, XCBWindow parent, 
 int x, int y, unsigned int width, unsigned int height, int border_width, 
-u8 depth, unsigned int class, XCBVisualId visual, u32 valuemask, const u32 *value_list)
+u8 depth, unsigned int class, XCBVisual visual, u32 valuemask, const u32 *value_list)
 {
     const XCBWindow id = xcb_generate_id(display);
     const void *used = NULL;
@@ -657,7 +668,7 @@ XCBDrawPoint(XCBDisplay *display, u8 coordinatemode, XCBDrawable drawable, XCBGC
 
 /* dumb stuff */
 
-void 
+inline void 
 XCBPrefetchMaximumRequestLength(XCBDisplay *display)
 {
     /**
@@ -680,4 +691,4 @@ XCBPrefetchMaximumRequestLength(XCBDisplay *display)
     xcb_prefetch_maximum_request_length(display);
 }
 
-xcb_generic_event_t *xcb_poll_for_queued_event(xcb_connection_t *c);
+//xcb_generic_event_t *xcb_poll_for_queued_event(xcb_connection_t *c);

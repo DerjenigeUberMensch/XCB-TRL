@@ -2,18 +2,29 @@
  * @file xcb_trl.h
  * Code definitions.
  */
+
+
+
+/* compiling
+ * xcb is dumb and sometimes doesnt find the required stuff so you just guess or search it up
+ * but this shhould cover most if not all of xcb's libraries, atleast the ones used here
+ * `pkg-config --cflags --libs xcb` -lxcb-util -lxcb-icccm
+ */
+
 #ifndef XCB_PTL_TYPEDEF_H_
 #define XCB_PTL_TYPEDEF_H_
 
 #include <xcb/xcb.h>
 #include <xcb/xcb_aux.h>
+#include <xcb/xcb_icccm.h>
 #include <xcb/xcb_event.h>
 #include <xcb/xcbext.h>
 #include <xcb/xcb_ewmh.h>
-#include <xcb/xcb_icccm.h>
 #include <xcb/xcb_keysyms.h>
 #include <xcb/xcb_cursor.h>
 #include <xcb/xinerama.h>
+#include <xcb/xcb_xrm.h>
+
 
 
 
