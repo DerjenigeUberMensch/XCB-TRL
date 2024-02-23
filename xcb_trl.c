@@ -552,6 +552,30 @@ XCBPollForEvent(XCBDisplay *display)
    return  xcb_poll_for_event(display);
 }
 
+inline XCBCookie
+XCBUngrabButton(XCBDisplay *display, uint8_t button, uint16_t modifier, XCBWindow window)
+{
+    return xcb_ungrab_button(display, button, window, modifier);
+}
+
+inline XCBCookie
+XCBGrabButton(
+        XCBDisplay *display, 
+        u8 button, 
+        u16 modifiers, 
+        XCBWindow grab_window, 
+        u8 owner_events, 
+        u16 event_mask, 
+        u8 pointer_mode,
+        u8 keyboard_mode,
+        XCBWindow confine_to,
+        XCBCursor cursor)
+{
+    return xcb_grab_button(display, owner_events, grab_window, event_mask, pointer_mode, keyboard_mode, confine_to, cursor, button, modifiers);
+}
+
+
+
 inline XCBGenericEvent *
 XCBPollForQueuedEvent(XCBDisplay *display)
 {
