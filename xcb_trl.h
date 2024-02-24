@@ -88,8 +88,12 @@ typedef xcb_cursor_t XCBCursor;
 typedef xcb_get_property_cookie_t XCBTextPropertyCookie;
 typedef xcb_icccm_get_text_property_reply_t XCBTextProperty;
 typedef xcb_void_cookie_t XCBCookie;
+typedef xcb_get_keyboard_mapping_cookie_t XCBKeyboardMappingCookie;
 typedef xcb_intern_atom_cookie_t XCBAtomCookie;
 typedef xcb_atom_t XCBAtom;
+
+typedef xcb_keycode_t XCBKeycode;
+typedef xcb_keycode_t XCBKeyCode;
 
 typedef xcb_visualid_t XCBVisual;
 
@@ -392,8 +396,28 @@ XCBGenericEvent *XCBPollForQueuedEvent(
 
 
 /* grabbing/grab */
+
+/*  
+ * key:         XCB_GRAB_ANY                Release all possible key codes.
+ *              XCBKeyCode                  The keycode of the specified key combination.
+ * modifiers:   XCB_MOD_MASK_ANY            Release all key combinations regardless of modifier.
+ *              XCB_MOD_MASK_SHIFT          The Shift Key. 
+ *              XCB_MOD_MASK_LOCK           The Lock Key.
+ *              XCB_MOD_MASK_CONTROL        The Ctrl Key.
+ *              XCB_MOD_MASK_1              The Alt Key.
+ *              XCB_MOD_MASK_2              The Numlock Key.
+ *              XCB_MOD_MASK_3              ISO_LEVEL5_SHIFT              
+ *              XCB_MOD_MASK_4              The Super/Windows Key.
+ *              XCB_MOD_MASK_5              ISO_LEVEL3_SHIFT 
+ * grab_window: XCBWindow                   The window on which the grabbed key combination will be released.
+ */
 XCBCookie
-XCBUngrabKey();
+XCBUngrabKey(
+        XCBDisplay *display,
+        XCBKeyCode key,
+        uint16_t modifiers,
+        XCBWindow grab_window
+        );
 /* button:      XCB_BUTTON_INDEX_ANY        Any of the following (or none).
  *              XCB_BUTTON_INDEX_1          The left mouse button.
  *              XCB_BUTTON_INDEX_2          The right mouse button.
@@ -469,13 +493,36 @@ XCBGrabButton(
         XCBWindow window_confide,
         XCBCursor cursor 
         );
+/* Returns min-keycodes and max-keycodes supported by the specified display.
+ * The minimum number of KeyCodes returned is never less than 8, and the maximum number of KeyCodes returned is never greater than 255. 
+ * Not all KeyCodes in this range are required to have corresponding keys.
+ *
+ * RETURN: 1 always;
+ */
+int XCBDisplayKeyCodes(
+        XCBDisplay *display, 
+        int *min_keycode_return, 
+        int *max_keycode_return);
+/* Returns min-keycodes and max-keycodes supported by the specified display.
+ * The minimum number of KeyCodes returned is never less than 8, and the maximum number of KeyCodes returned is never greater than 255. 
+ * Not all KeyCodes in this range are required to have corresponding keys.
+ *
+ * RETURN: 1 always;
+ */
+int XCBDisplayKeycodes(
+        XCBDisplay *display, 
+        int *min_keycode_return, 
+        int *max_keycode_return);
 
 
+XCBKeyboardMappingCookie XCBGetKeyboardMappingCookie(
+        XCBDisplay *display, 
+        XCBKeyCode first_keycode, 
+        uint8_t count);
 
-/* This function sends a event to the XServer to map the window specified;
- * This request isnt received immediatly;
- * For an immediate request to the XServer xcb_flush() must be called; 
- * USE xcb_flush with caution.
+int XCBGetKeyboardMappingReply(XCBDisplay *display, XCBKeyboardMappingCookie cookie);
+
+/* Send a event to the XServer to map the window specified;
  *
  * RETURN: Cookie to request.
  */

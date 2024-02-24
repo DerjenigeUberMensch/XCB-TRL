@@ -553,6 +553,12 @@ XCBPollForEvent(XCBDisplay *display)
 }
 
 inline XCBCookie
+XCBUngrabKey(XCBDisplay *display, XCBKeyCode key, u16 modifiers, XCBWindow grab_window)
+{
+    return xcb_ungrab_key(display, key, grab_window, modifiers);
+}
+
+inline XCBCookie
 XCBUngrabButton(XCBDisplay *display, uint8_t button, uint16_t modifier, XCBWindow window)
 {
     return xcb_ungrab_button(display, button, window, modifier);
@@ -574,7 +580,23 @@ XCBGrabButton(
     return xcb_grab_button(display, owner_events, grab_window, event_mask, pointer_mode, keyboard_mode, confine_to, cursor, button, modifiers);
 }
 
+inline int
+XCBDisplayKeyCodes(XCBDisplay *display, int *min_keycode_return, int *max_keycode_return)
+{
+    const XCBSetup *setup = xcb_get_setup(display);
+    *min_keycode_return = setup->min_keycode;
+    *max_keycode_return = setup->max_keycode;
+    return 1;
+}
 
+inline int 
+XCBDisplayKeycodes(XCBDisplay *display, int *min_keycode_return, int *max_keycode_return)
+{
+    const XCBSetup *setup = xcb_get_setup(display);
+    *min_keycode_return = setup->min_keycode;
+    *max_keycode_return = setup->max_keycode;
+    return 1;
+}
 
 inline XCBGenericEvent *
 XCBPollForQueuedEvent(XCBDisplay *display)
