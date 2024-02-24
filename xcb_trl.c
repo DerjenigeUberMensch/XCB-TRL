@@ -348,8 +348,8 @@ XCBGetWindowAttributesCookie(XCBDisplay *display, XCBWindow window)
 inline XCBWindowAttributesReply *
 XCBGetWindowAttributesReply(XCBDisplay *display, XCBWindowAttributesCookie cookie)
 {
-    XCBGenericError **e = NULL;
-    return xcb_get_window_attributes_reply(display, cookie, e);
+    XCBGenericError *err;
+    return xcb_get_window_attributes_reply(display, cookie, &err);
 }
 
 inline XCBGeometryCookie
@@ -361,8 +361,8 @@ XCBGetWindowGeometryCookie(XCBDisplay *display, XCBWindow window)
 inline XCBGeometry *
 XCBGetWindowGeometryReply(XCBDisplay *display, XCBGeometryCookie cookie)
 {
-    XCBGenericError **e = NULL;
-    return xcb_get_geometry_reply(display, cookie, e);
+    XCBGenericError *err;
+    return xcb_get_geometry_reply(display, cookie, &err);
 }
 
 
@@ -375,8 +375,8 @@ XCBInternAtomCookie(XCBDisplay *display, const char *name, int only_if_exists)
 inline XCBAtom
 XCBInternAtomReply(XCBDisplay *display, XCBAtomCookie cookie)
 {
-    XCBGenericError **e = NULL;
-    xcb_intern_atom_reply_t *reply = xcb_intern_atom_reply(display, cookie, e);
+    XCBGenericError *err;
+    xcb_intern_atom_reply_t *reply = xcb_intern_atom_reply(display, cookie, &err);
     xcb_atom_t atom = 0;
     if(reply)
     {
@@ -460,8 +460,8 @@ XCBGetTextPropertyCookie(XCBDisplay *display, XCBWindow window, XCBAtom property
 inline int 
 XCBGetTextPropertyReply(XCBDisplay *display, XCBTextPropertyCookie cookie, XCBTextProperty *reply_return)
 {
-    XCBGenericError **e = NULL;
-    return xcb_icccm_get_text_property_reply(display, cookie, reply_return, e);
+    XCBGenericError *err;
+    return xcb_icccm_get_text_property_reply(display, cookie, reply_return, &err);
 }
 inline void 
 XCBFreeTextProperty(XCBTextProperty *prop)
@@ -598,12 +598,24 @@ XCBDisplayKeycodes(XCBDisplay *display, int *min_keycode_return, int *max_keycod
     return 1;
 }
 
+inline XCBKeyboardMappingCookie 
+XCBGetKeyboardMappingCookie(XCBDisplay *display, XCBKeyCode first_keycode, u8 count)
+{
+    return xcb_get_keyboard_mapping(display, first_keycode, count);
+}
+
+inline XCBKeyboardMapping *
+XCBGetKeyboardMappingReply(XCBDisplay *display, XCBKeyboardMappingCookie cookie)
+{
+    XCBGenericError *err;
+    return xcb_get_keyboard_mapping_reply(display, cookie, &err);
+}
+
 inline XCBGenericEvent *
 XCBPollForQueuedEvent(XCBDisplay *display)
 {
     return xcb_poll_for_queued_event(display);
 }
-
 
 inline XCBPointerCookie
 XCBQueryPointerCookie(XCBDisplay *display, XCBWindow window)
@@ -614,8 +626,8 @@ XCBQueryPointerCookie(XCBDisplay *display, XCBWindow window)
 inline XCBPointerReply *
 XCBQueryPointerReply(XCBDisplay *display, XCBPointerCookie cookie)
 {
-    XCBGenericError **err = NULL;
-    return xcb_query_pointer_reply(display, cookie, err);
+    XCBGenericError *err;
+    return xcb_query_pointer_reply(display, cookie, &err);
 }
 
 
