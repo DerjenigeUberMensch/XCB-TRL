@@ -34,6 +34,7 @@
 #define XCB_PTL_TYPEDEF_H_
 
 #include <xcb/xcb.h>
+#include <xcb/xcb_atom.h>
 #include <xcb/xcb_aux.h>
 #include <xcb/xcb_icccm.h>
 #include <xcb/xcb_event.h>
@@ -338,8 +339,10 @@ XCBWhitePixel(
  * NOTE: Having too many request pending eg. not Syncing causes slow requests to the server, this is due to the buffer being full.
  *       Meaning you must sync the buffer with the XServer to send more, (eg. requests_pending > 1000).
  * NOTE: Flushing is mostly fine at requests_pending < 100, however syncing is still prefered when available.
- *          There would be a noticeable delay though when flushing at requests_pending > 200-1000.
+ *       There would be a noticeable delay though when flushing at requests_pending > 200-1000.
  * NOTE: You can tests this on your system by sending alot of requests to the XServer and calling XFlush after x amount of requests.
+ * NOTE: It is recommended to call XSync() after every ~1000 or so requests, if quickly sending alot of events.
+ *       However if not sending alot of events in x < 1 (seconds) then syncing may not be nessesary.
  */
 void 
 XCBSync(
@@ -498,6 +501,14 @@ XCBFreeTextProperty(
  * !!!!!!IMPORTANT!!!!!!
  * This function is rather slow refer to XCBSync();
  *
+ * NOTE: Flushing small buffers, e.g. requests_pending < 100 is slightly faster than calling XCBSync.
+ *       however due to the nature of flushing this case rarely if ever occurs.
+ * NOTE: Flushing large buffers e.g., requests_pending > 200-1000 is considerably slower than calling XCBSync.
+ *       however yields faster results then calling neither.
+ * 
+ * CONCLUSION: Use XCBSync() when ever possible, and after every ~1000 requests_pending due to the Display buffer filling up.
+ *             Though depending on use case XCBSync may never need to be called, if there arent enough requests_pending to fill up Display buffer.
+ *
  * RETURN: 0 on Success.
  * RETURN: 1 on Failure.
  */ 
@@ -537,13 +548,13 @@ int
 XCBCheckDisplayError(
         XCBDisplay *display);
 
-/*
- * RETURN: {1, 0}.
+/* NONFUNCTIONING
  * 1 -> Error handler set.
  * 0 -> Error handler unset.
  * Incase of an unset error handler (default) XCB simply calls die() when an error occurs which may not be desired.
  * One should note that this function simply sets the function to be called when an error occurs using this API.
  * Meaning that this only handles calls made by this API, this does not handle any errors caused by another thread or raw xcb calls.
+ * RETURN: {1, 0}.
  */
 int 
 XCBSetErrorHandler(void (*error_handler)(XCBDisplay *, XCBGenericError *));
