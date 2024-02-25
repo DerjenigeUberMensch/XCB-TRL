@@ -3,13 +3,32 @@
  * Code definitions.
  */
 
-
-
 /* compiling
  * xcb is dumb and sometimes doesnt find the required stuff so you just guess or search it up
  * but this shhould cover most if not all of xcb's libraries, atleast the ones used here
  * `pkg-config --cflags --libs xcb` -lxcb-util -lxcb-icccm
  */
+
+
+/* Why use this?
+ * you shouldnt, this was mostly for self-documentation and for macros.
+ * Why make this?
+ * xcb snake_case is a dumb change (in my opinion), and should have stayed camelCase or PascalCase.
+ * but it likely wasnt to "dissasociate" from Xlib which is fine, however I personally dont like that form of casing.
+ * also some changes encourage a certain type of usage which is fine, however when "some things" are poorly documented.
+ * It becomes quite hard to understand those design choices.
+ * However for the most part the important things are documented.
+ * Secondly the design choices really make xcb more like a Async Xlib which is strange.
+ * Is this bloat?
+ * Yes, yes it is.
+ * Why not seperate files?
+ * 1. Faster compiling.
+ * 2. ctrl+f or '/' for search, no need for grep.
+ * 3. too much work.
+ * 4. I am Lazy.
+ */
+
+
 
 #ifndef XCB_PTL_TYPEDEF_H_
 #define XCB_PTL_TYPEDEF_H_
@@ -283,14 +302,14 @@ uint8_t
 XCBDefaultDepth(
         XCBDisplay *display, 
         int screen);
-XCBCookie 
+void
 XCBSelectInput(
         XCBDisplay *display, 
         XCBWindow window, 
         uint32_t mask);
 /*
  */
-XCBCookie 
+void
 XCBChangeWindowAttributes(
         XCBDisplay *display, 
         XCBWindow window, 
@@ -307,19 +326,33 @@ XCBWhitePixel(
         XCBDisplay *display, 
         int screen);
 
-/* syncs the display */
+/* Syncs the current client to the XServer.
+ *
+ * This is generally a much faster approach than explicitly calling XCBFlush(); due to the lack of need to write to buffer(I/O)
+ * 
+ * If you need to flush, It is generally best to call XCBSync() Then XCBFlush() as XCBSync() waits for the XServer buffer to not be full before writting.
+ * This makes any delay by the server not as noticeable compared to just calling XCBFlush()
+ *
+ * Remember Syncing is cheap, Flushing is expensive.
+ *
+ * NOTE: Having too many request pending eg. not Syncing causes slow requests to the server, this is due to the buffer being full.
+ *       Meaning you must sync the buffer with the XServer to send more, (eg. requests_pending > 1000).
+ * NOTE: Flushing is mostly fine at requests_pending < 100, however syncing is still prefered when available.
+ *          There would be a noticeable delay though when flushing at requests_pending > 200-1000.
+ * NOTE: You can tests this on your system by sending alot of requests to the XServer and calling XFlush after x amount of requests.
+ */
 void 
 XCBSync(
         XCBDisplay *display);
 
-XCBCookie 
+void
 XCBMoveWindow(
         XCBDisplay *display, 
         XCBWindow window, 
         int32_t x, 
         int32_t y);
 
-XCBCookie 
+void
 XCBMoveResizeWindow(
         XCBDisplay *display, 
         XCBWindow window, 
@@ -328,38 +361,38 @@ XCBMoveResizeWindow(
         uint32_t width, 
         uint32_t height);
 
-XCBCookie 
+void
 XCBRaiseWindow(
         XCBDisplay *display, 
         XCBWindow window);
 
-XCBCookie 
+void 
 XCBMapRaised(
         XCBDisplay *display, 
         XCBWindow window);
 
-XCBCookie 
+void 
 XCBLowerWindow(
         XCBDisplay *display, 
         XCBWindow window);
 
-XCBCookie 
+void 
 XCBRaiseWindowIf(
         XCBDisplay *display, 
         XCBWindow window);
 
-XCBCookie 
+void 
 XCBLowerWindowIf(
         XCBDisplay *display, 
         XCBWindow window);
 
-XCBCookie 
+void 
 XCBSetWindowBorderWidth(
         XCBDisplay *display, 
         XCBWindow window, 
         uint32_t border_width);
 
-XCBCookie 
+void 
 XCBSetSibling(
         XCBDisplay *display, 
         XCBWindow window, 
@@ -409,12 +442,12 @@ XCBCreateFontCursor(
         XCBDisplay *display, 
         int shape);
 
-XCBCookie 
+void 
 XCBDefineCursor(
         XCBDisplay *display, 
         XCBWindow window, XCBCursor id);
 
-XCBCookie 
+void 
 XCBFreeCursor(
         XCBDisplay *display, 
         XCBCursor cursor);
@@ -430,7 +463,7 @@ XCBQueryPointerReply(
         XCBPointerCookie cookie);
 /* fonts */
 /**/
-XCBCookie 
+void 
 XCBOpenFont(
         XCBDisplay *display, 
         XCBFont id, const char *name);
@@ -462,6 +495,9 @@ XCBFreeTextProperty(
  * Flushes buffered output to XServer.
  * Blocks Until buffer is fully flushed.
  *
+ * !!!!!!IMPORTANT!!!!!!
+ * This function is rather slow refer to XCBSync();
+ *
  * RETURN: 0 on Success.
  * RETURN: 1 on Failure.
  */ 
@@ -483,7 +519,7 @@ XCBFlush(
  * 
  * RETURN: Max Request length in (bytes / 4)
  */
-unsigned long 
+uint32_t
 XCBGetMaximumRequestLength(
         XCBDisplay *display);
 
@@ -501,6 +537,19 @@ int
 XCBCheckDisplayError(
         XCBDisplay *display);
 
+/*
+ * RETURN: {1, 0}.
+ * 1 -> Error handler set.
+ * 0 -> Error handler unset.
+ * Incase of an unset error handler (default) XCB simply calls die() when an error occurs which may not be desired.
+ * One should note that this function simply sets the function to be called when an error occurs using this API.
+ * Meaning that this only handles calls made by this API, this does not handle any errors caused by another thread or raw xcb calls.
+ */
+int 
+XCBSetErrorHandler(void (*error_handler)(XCBDisplay *, XCBGenericError *));
+
+
+/* not implemented */
 void 
 XCBSetIOErrorHandler(
         XCBDisplay *display, 
@@ -594,7 +643,7 @@ XCBPollForQueuedEvent(
  *              XCB_MOD_MASK_5              ISO_LEVEL3_SHIFT 
  * grab_window: XCBWindow                   The window on which the grabbed key combination will be released.
  */
-XCBCookie
+void
 XCBUngrabKey(
         XCBDisplay *display,
         XCBKeyCode key,
@@ -620,7 +669,7 @@ XCBUngrabKey(
  *
  *  RETURN: Cookie to request.
  */
-XCBCookie 
+void 
 XCBUngrabButton(
         XCBDisplay *display, 
         uint8_t button, 
@@ -663,7 +712,7 @@ XCBUngrabButton(
  *                  XCBCursor                   Specifies the cursor that should be displayed.
  * RETURN: Cookie to request.
  */
-XCBCookie 
+void 
 XCBGrabButton(
         XCBDisplay *display, 
         uint8_t button, 
@@ -715,7 +764,7 @@ XCBGetKeyboardMappingReply(
  *
  * RETURN: Cookie to request.
  */
-XCBCookie 
+void 
 XCBMapWindow(
         XCBDisplay *display, 
         XCBWindow window);
@@ -782,7 +831,7 @@ XCBSetLineAttributes(
         uint32_t joinstyle);
 
 
-XCBCookie 
+void 
 XCBChangeProperty(
         XCBDisplay *display,
         XCBWindow window, 
@@ -793,7 +842,7 @@ XCBChangeProperty(
         const void *data, 
         uint32_t nelements);
 
-XCBCookie
+void
 XCBDeleteProperty(
         XCBDisplay *display, 
         XCBWindow window, 
@@ -803,9 +852,9 @@ XCBDeleteProperty(
  *
  * NOTE: class_name does not protect against non terminating strings.
  *
- * RETURN: XCBCookie.
+ * RETURN: void.
  */
-XCBCookie 
+void 
 XCBSetClassHint(
         XCBDisplay *display, 
         XCBWindow window, 
@@ -836,14 +885,26 @@ XCB_GC_DASH_OFFSET
 XCB_GC_DASH_LIST
 XCB_GC_ARC_MODE
 */
-XCBCookie 
+void 
 XCBChangeGC(
         XCBDisplay *display, 
         XCBGC gc, 
         uint32_t valuemask, 
         const void *valuelist);
 
-
+void
+XCBDrawPoint(
+        XCBDisplay *display,
+        uint8_t coordinate_mode,
+        XCBDrawable drawable,
+        XCBGC gc,
+        uint32_t points_len,
+        XCBPoint *points
+        );
+int
+XCBDiscardReply(
+        XCBDisplay *display, 
+        XCBCookie cookie);
 
 /* dumb stuff */
 
@@ -1001,7 +1062,7 @@ XCBPrefetchMaximumRequestLength(
  * ----------------------------
  * XCB_TIME_CURRENT_TIME = 0
  *
- * Atom
+ * Atom (Comparable to Xlib's XA_ properties, which is short of X_ATOM which is short for XSERVER_ATOM)
  * ----------------------------
  * XCB_ATOM_NONE = 0,
  * XCB_ATOM_ANY = 0,
