@@ -77,7 +77,6 @@ _xcb_die(const char *fmt, ...)
 static void
 _xcb_err_handler(XCBDisplay *display, XCBGenericError *err)
 {
-    printf("Fuck toyu");
     if(!err || !display)
     {
         return;
@@ -85,8 +84,7 @@ _xcb_err_handler(XCBDisplay *display, XCBGenericError *err)
     if(!_handler)
     {   
         if(err->error_code == XCB_NONE)
-        {   printf("Not error");
-            return;
+        {    return;
         }
         _xcb_die("error_code: [%d], major_code: [%d], minor_code: [%d]\n"
             "sequence: [%d], response_type: [%d], resource_id: [%d]\n"
