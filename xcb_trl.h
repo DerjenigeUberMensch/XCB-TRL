@@ -82,7 +82,18 @@
  * This can be done manually using _XReply(), _XRead(), _XWrite() however xcb abstracts that away.
  * Because of that we can use xcb_cool_function_ and then _reply() so xcb_cool_function_reply(XCBDisplay *display, XCBCookie cookie);
  * Some xcb functions dont have a _reply() version and those are simply handled in the event queue;
+ * 
+ * Errors;
  *
+ * Depending on the type of error a few things can occur.
+ *
+ * <<< XCBConnection Error >>> ;
+ * This type of error can happen out of the blue if you arent careful.
+ * To check if this error occured simply acces the display->has_error type;
+ * If you want a more clear approach you can simply call XCBHasConnectionError();
+ * 
+ * 
+ * 
  */
 
 #ifndef XCB_PTL_TYPEDEF_H_
@@ -197,6 +208,7 @@ typedef xcb_drawable_t XCBDrawable;
 typedef xcb_point_t XCBPoint;
 typedef xcb_font_t XCBFont;
 typedef xcb_generic_event_t XCBGenericEvent;
+typedef xcb_generic_reply_t XCBGenericReply;
 typedef xcb_generic_error_t XCBGenericError;
 
 typedef xcb_query_pointer_cookie_t XCBPointerCookie;
@@ -596,7 +608,8 @@ XCBGetMaximumRequestLength(
 
 
 
-/* 
+/* Check if the display flag has set a connection error display->has_error;
+ * 
  * RETURN: XCB_CONN_ERROR, because of socket errors, pipe errors or other stream errors.
  * RETURN: XCB_CONN_CLOSED_EXT_NOTSUPPORTED, when extension not supported.
  * RETURN: XCB_CONN_CLOSED_MEM_INSUFFICIENT, when memory not available.
@@ -607,6 +620,43 @@ XCBGetMaximumRequestLength(
 int 
 XCBCheckDisplayError(
         XCBDisplay *display);
+/* Check if the display flag has set a connection error display->has_error;
+ * 
+ * RETURN: XCB_CONN_ERROR, because of socket errors, pipe errors or other stream errors.
+ * RETURN: XCB_CONN_CLOSED_EXT_NOTSUPPORTED, when extension not supported.
+ * RETURN: XCB_CONN_CLOSED_MEM_INSUFFICIENT, when memory not available.
+ * RETURN: XCB_CONN_CLOSED_REQ_LEN_EXCEED, exceeding request length that server accepts.
+ * RETURN: XCB_CONN_CLOSED_PARSE_ERR, error during parsing display string.
+ * RETURN: XCB_CONN_CLOSED_INVALID_SCREEN, because the server does not have a screen matching the display.
+ */
+int
+XCBCheckDisplayError(
+        XCBDisplay *display);
+/* Check if the display flag has set a connection error display->has_error;
+ * 
+ * RETURN: XCB_CONN_ERROR, because of socket errors, pipe errors or other stream errors.
+ * RETURN: XCB_CONN_CLOSED_EXT_NOTSUPPORTED, when extension not supported.
+ * RETURN: XCB_CONN_CLOSED_MEM_INSUFFICIENT, when memory not available.
+ * RETURN: XCB_CONN_CLOSED_REQ_LEN_EXCEED, exceeding request length that server accepts.
+ * RETURN: XCB_CONN_CLOSED_PARSE_ERR, error during parsing display string.
+ * RETURN: XCB_CONN_CLOSED_INVALID_SCREEN, because the server does not have a screen matching the display.
+ */
+int 
+XCBHasConnectionError(
+        XCBDisplay *display);
+/* Check if the display flag has set a connection error display->has_error;
+ * 
+ * RETURN: XCB_CONN_ERROR, because of socket errors, pipe errors or other stream errors.
+ * RETURN: XCB_CONN_CLOSED_EXT_NOTSUPPORTED, when extension not supported.
+ * RETURN: XCB_CONN_CLOSED_MEM_INSUFFICIENT, when memory not available.
+ * RETURN: XCB_CONN_CLOSED_REQ_LEN_EXCEED, exceeding request length that server accepts.
+ * RETURN: XCB_CONN_CLOSED_PARSE_ERR, error during parsing display string.
+ * RETURN: XCB_CONN_CLOSED_INVALID_SCREEN, because the server does not have a screen matching the display.
+ */
+int 
+XCBHasDisplayError(
+        XCBDisplay *display);
+
 
 /* NONFUNCTIONING
  * 1 -> Error handler set.
@@ -696,7 +746,46 @@ XCBPollForEvent(
 XCBGenericEvent *
 XCBPollForQueuedEvent(
         xcb_connection_t *c);
-
+/* Check if a specified cookie request has a reply available from the XServer.
+ * 
+ * RETURN: 1 On Sucess.
+ * RETURN: 0 On Not Avaible/Failure.
+ */
+int 
+XCBPollForReply(
+        XCBDisplay *display, 
+        XCBCookie request, 
+        void **reply);
+/* Check if a specified cookie request has a reply available from the XServer.
+ * This is different from XCBPollForReply() as it assumes the request has already be widened.
+ *
+ * RETURN: 1 On Sucess.
+ * RETURN: 0 ON Not Avaible/Failure.
+ */
+int 
+XCBPollForReply64(
+        XCBDisplay *display, 
+        XCBCookie request, 
+        void **reply);
+/* Check if a specified cookie request has a reply available from the XServer.
+ * 
+ * RETURN: NULL
+ * RETURN: void *
+ */
+void *
+XCBCheckReply(
+        XCBDisplay *display, 
+        XCBCookie request);
+/* Check if a specified cookie request has a reply available from the XServer.
+ * This is different from XCBCheckReply() as it assumes the request has already be widened.
+ *
+ * RETURN: NULL
+ * RETURN: void *
+ */
+void *
+XCBCheckReply64(
+        XCBDisplay *display, 
+        XCBCookie request);
 
 /* grabbing/grab */
 
