@@ -561,16 +561,20 @@ XCBGetMaximumRequestLength(XCBDisplay *display)
 
 inline int
 XCBCheckDisplayError(XCBDisplay *display)
+{   return xcb_connection_has_error(display);
+}
+inline int 
+XCBHasConnectionError(XCBDisplay *display)
+{   return xcb_connection_has_error(display);
+}
+inline int 
+XCBCheckConnectionError(XCBDisplay *display)
 {
-    /* Error values:
-     * XCB_CONN_ERROR, because of socket errors, pipe errors or other stream errors.
-     * XCB_CONN_CLOSED_EXT_NOTSUPPORTED, when extension not supported.
-     * XCB_CONN_CLOSED_MEM_INSUFFICIENT, when memory not available.
-     * XCB_CONN_CLOSED_REQ_LEN_EXCEED, exceeding request length that server accepts.
-     * XCB_CONN_CLOSED_PARSE_ERR, error during parsing display string.
-     * XCB_CONN_CLOSED_INVALID_SCREEN, because the server does not have a screen matching the display.
-     */
     return xcb_connection_has_error(display);
+}
+inline int 
+XCBHasDisplayError(XCBDisplay *display)
+{   return xcb_connection_has_error(display);
 }
 
 inline int
