@@ -28,7 +28,62 @@
  * 4. I am Lazy.
  */
 
-
+/*
+ * Basic XCB Usage
+ *
+ * Cookies;
+ *
+ * Cookies are simply structures with ids.
+ * These cookies are mostly useless and just ids for xcb to use.
+ *
+ * However you can do 2 unique things with them.
+ *
+ * Self Spoofing;
+ *
+ * Events in xcb are quite different compared to Xlib and are much simpler in theory.
+ * Due to this we can self Spoof calls to our current event handler.
+ * This is sometimes useful when you dont want to receive an event back (for whatever reason).
+ * Or when you want to receive events back from yourself which can be useful most of the time.
+ *
+ * # This would send an event to the XServer that we want to map this window as a mapnotify (assuming we sent it).
+ * # and have to be handle by us.
+ *
+ * XCBMapWindow(dpy, cool_window);
+ *
+ * # <<< Event Generated >>> #
+ * 
+ *
+ * However we can "spoof" no reply and generate no event for ourselves.
+ *
+ * XCBCookie cookie;
+ * cookie = XCBMapWindow(dpy, cool_window);
+ * XCBDiscardReply(dpy, cookie);
+ *
+ * # <<< No Event Generated >>> #
+ *
+ * This may not "always" work due to how xcb works so, we must to call XCBDiscardReply() after our generated cookie.
+ * 
+ * XCBCookie cookie;
+ * cookie = XCBMapWindow(dpy, cool_window);
+ * # Sync the Display
+ * XCBSync(dpy) # or XCBFlush(dpy);
+ *
+ * # This does nothing because we flushed the buffer to the display using XCBSync()
+ * XCBDiscardReply(dpy, cookie);
+ *
+ * # Reply64
+ * # This really isnt too important and is mostly for 64 bit platforms
+ * XCBDiscardReply64(dpy, cookie);
+ *
+ *
+ * Reply backs;
+ *
+ * The second thing we can do is ask for a reply back from the XServer.
+ * This can be done manually using _XReply(), _XRead(), _XWrite() however xcb abstracts that away.
+ * Because of that we can use xcb_cool_function_ and then _reply() so xcb_cool_function_reply(XCBDisplay *display, XCBCookie cookie);
+ * Some xcb functions dont have a _reply() version and those are simply handled in the event queue;
+ *
+ */
 
 #ifndef XCB_PTL_TYPEDEF_H_
 #define XCB_PTL_TYPEDEF_H_
@@ -303,14 +358,14 @@ uint8_t
 XCBDefaultDepth(
         XCBDisplay *display, 
         int screen);
-void
+XCBCookie
 XCBSelectInput(
         XCBDisplay *display, 
         XCBWindow window, 
         uint32_t mask);
 /*
  */
-void
+XCBCookie
 XCBChangeWindowAttributes(
         XCBDisplay *display, 
         XCBWindow window, 
@@ -330,10 +385,8 @@ XCBWhitePixel(
 /* Syncs the current client to the XServer.
  *
  * This is generally a much faster approach than explicitly calling XCBFlush(); due to the lack of need to write to buffer(I/O)
+ * However does not substitute in any way XCBFlush(); Use it instead when requiring a output;
  * 
- * If you need to flush, It is generally best to call XCBSync() Then XCBFlush() as XCBSync() waits for the XServer buffer to not be full before writting.
- * This makes any delay by the server not as noticeable compared to just calling XCBFlush()
- *
  * Remember Syncing is cheap, Flushing is expensive.
  *
  * NOTE: Having too many request pending eg. not Syncing causes slow requests to the server, this is due to the buffer being full.
@@ -348,14 +401,14 @@ void
 XCBSync(
         XCBDisplay *display);
 
-void
+XCBCookie
 XCBMoveWindow(
         XCBDisplay *display, 
         XCBWindow window, 
         int32_t x, 
         int32_t y);
 
-void
+XCBCookie
 XCBMoveResizeWindow(
         XCBDisplay *display, 
         XCBWindow window, 
@@ -364,38 +417,38 @@ XCBMoveResizeWindow(
         uint32_t width, 
         uint32_t height);
 
-void
+XCBCookie
 XCBRaiseWindow(
         XCBDisplay *display, 
         XCBWindow window);
 
-void 
+XCBCookie
 XCBMapRaised(
         XCBDisplay *display, 
         XCBWindow window);
 
-void 
+XCBCookie
 XCBLowerWindow(
         XCBDisplay *display, 
         XCBWindow window);
 
-void 
+XCBCookie
 XCBRaiseWindowIf(
         XCBDisplay *display, 
         XCBWindow window);
 
-void 
+XCBCookie
 XCBLowerWindowIf(
         XCBDisplay *display, 
         XCBWindow window);
 
-void 
+XCBCookie
 XCBSetWindowBorderWidth(
         XCBDisplay *display, 
         XCBWindow window, 
         uint32_t border_width);
 
-void 
+XCBCookie
 XCBSetSibling(
         XCBDisplay *display, 
         XCBWindow window, 
@@ -445,15 +498,26 @@ XCBCreateFontCursor(
         XCBDisplay *display, 
         int shape);
 
-void 
+XCBCookie
 XCBDefineCursor(
         XCBDisplay *display, 
         XCBWindow window, XCBCursor id);
 
-void 
+XCBCookie
 XCBFreeCursor(
         XCBDisplay *display, 
         XCBCursor cursor);
+
+XCBCookie
+XCBOpenFont(
+        XCBDisplay *display, 
+        XCBFont id, const char *name);
+
+XCBCookie
+XCBCloseFont(
+        XCBDisplay *display,
+        XCBFont id
+        );
 
 XCBPointerCookie 
 XCBQueryPointerCookie(
@@ -464,14 +528,7 @@ XCBPointerReply *
 XCBQueryPointerReply(
         XCBDisplay *display, 
         XCBPointerCookie cookie);
-/* fonts */
 /**/
-void 
-XCBOpenFont(
-        XCBDisplay *display, 
-        XCBFont id, const char *name);
-
-
 /* text props */
 XCBTextPropertyCookie 
 XCBGetTextPropertyCookie(
@@ -490,7 +547,10 @@ XCBGetTextPropertyReply(
         XCBTextPropertyCookie cookie, 
         XCBTextProperty *reply_return);
 
-void 
+/*
+ * RETURN: 1 on Success.
+ */
+int
 XCBFreeTextProperty(
         XCBTextProperty *prop);
 
@@ -499,7 +559,7 @@ XCBFreeTextProperty(
  * Blocks Until buffer is fully flushed.
  *
  * !!!!!!IMPORTANT!!!!!!
- * This function is rather slow refer to XCBSync();
+ * This function should not be called often and should be called on important things that cant wait for XCBSync();
  *
  * NOTE: Flushing small buffers, e.g. requests_pending < 100 is slightly faster than calling XCBSync.
  *       however due to the nature of flushing this case rarely if ever occurs.
@@ -585,13 +645,13 @@ XCBGetErrorText(
  * This returns a structure called xcb_generic_event_t
  * This Function Blocks until a request is received
  *
- * RETURN: XCBGenericEvent * on Success
- * RETURN: XCBGenericError * on Error
- * RETURN: NULL on I/O Error
+ * event_return: XCBGenericEvent * on Success
+ * event_return: XCBGenericError * on Error
+ * event_return: NULL on I/O Error
  */
-XCBGenericEvent *
+void
 XCBNextEvent(
-        XCBDisplay *display);
+        XCBDisplay *display, XCBGenericEvent **event_return);
 /* 
  * Gets and returns the next Event from the XServer
  * This returns a structure called xcb_generic_event_t
@@ -654,7 +714,7 @@ XCBPollForQueuedEvent(
  *              XCB_MOD_MASK_5              ISO_LEVEL3_SHIFT 
  * grab_window: XCBWindow                   The window on which the grabbed key combination will be released.
  */
-void
+XCBCookie
 XCBUngrabKey(
         XCBDisplay *display,
         XCBKeyCode key,
@@ -680,7 +740,7 @@ XCBUngrabKey(
  *
  *  RETURN: Cookie to request.
  */
-void 
+XCBCookie
 XCBUngrabButton(
         XCBDisplay *display, 
         uint8_t button, 
@@ -723,7 +783,7 @@ XCBUngrabButton(
  *                  XCBCursor                   Specifies the cursor that should be displayed.
  * RETURN: Cookie to request.
  */
-void 
+XCBCookie
 XCBGrabButton(
         XCBDisplay *display, 
         uint8_t button, 
@@ -775,7 +835,7 @@ XCBGetKeyboardMappingReply(
  *
  * RETURN: Cookie to request.
  */
-void 
+XCBCookie
 XCBMapWindow(
         XCBDisplay *display, 
         XCBWindow window);
@@ -842,7 +902,7 @@ XCBSetLineAttributes(
         uint32_t joinstyle);
 
 
-void 
+XCBCookie
 XCBChangeProperty(
         XCBDisplay *display,
         XCBWindow window, 
@@ -853,7 +913,7 @@ XCBChangeProperty(
         const void *data, 
         uint32_t nelements);
 
-void
+XCBCookie
 XCBDeleteProperty(
         XCBDisplay *display, 
         XCBWindow window, 
@@ -863,9 +923,9 @@ XCBDeleteProperty(
  *
  * NOTE: class_name does not protect against non terminating strings.
  *
- * RETURN: void.
+ * RETURN: A Cookie to request.
  */
-void 
+XCBCookie
 XCBSetClassHint(
         XCBDisplay *display, 
         XCBWindow window, 
@@ -896,14 +956,14 @@ XCB_GC_DASH_OFFSET
 XCB_GC_DASH_LIST
 XCB_GC_ARC_MODE
 */
-void 
+XCBCookie
 XCBChangeGC(
         XCBDisplay *display, 
         XCBGC gc, 
         uint32_t valuemask, 
         const void *valuelist);
 
-void
+XCBCookie
 XCBDrawPoint(
         XCBDisplay *display,
         uint8_t coordinate_mode,
