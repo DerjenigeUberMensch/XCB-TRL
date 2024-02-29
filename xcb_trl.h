@@ -691,25 +691,29 @@ XCBGetErrorText(
 
 
 /* 
- * Gets and returns the next Event from the XServer
- * This returns a structure called xcb_generic_event_t
- * This Function Blocks until a request is received
+ * Gets and returns the next Event from the XServer.
+ * This returns a structure called xcb_generic_event_t.
+ * This Function Blocks until a request is received.
  *
- * event_return: XCBGenericEvent * on Success
- * event_return: XCBGenericError * on Error
- * event_return: NULL on I/O Error
+ * event_return: XCBGenericEvent * on Success.
+ * event_return: XCBGenericError * on Error.
+ * event_return: NULL on I/O Error.
+ *
+ * RETURN: 1 On Success.
+ * RETURN: 0 On Failure.
  */
-void
+int
 XCBNextEvent(
-        XCBDisplay *display, XCBGenericEvent **event_return);
+        XCBDisplay *display, 
+        XCBGenericEvent **event_return);
 /* 
- * Gets and returns the next Event from the XServer
- * This returns a structure called xcb_generic_event_t
- * This Function Blocks until a request is received
+ * Gets and returns the next Event from the XServer.
+ * This returns a structure called xcb_generic_event_t.
+ * This Function Blocks until a request is received.
  *
- * RETURN: XCBGenericEvent * on Success
- * RETURN: XCBGenericError * on Error
- * RETURN: NULL on I/O Error
+ * RETURN: XCBGenericEvent * on Success.
+ * RETURN: XCBGenericError * on Error.
+ * RETURN: NULL on I/O Error.
  */
 XCBGenericEvent *
 XCBWaitForEvent(
@@ -728,7 +732,7 @@ XCBWaitForEvent(
  */
 XCBGenericEvent *
 XCBPollForEvent(
-        xcb_connection_t *c);
+        XCBDisplay *display);
 /** <Straight from the documentation.>
  * @brief Returns the next event without reading from the connection.
  * @param c The connection to the X server.
@@ -745,10 +749,10 @@ XCBPollForEvent(
  */
 XCBGenericEvent *
 XCBPollForQueuedEvent(
-        xcb_connection_t *c);
+        XCBDisplay *display);
 /* Check if a specified cookie request has a reply available from the XServer.
  * 
- * RETURN: 1 On Sucess.
+ * RETURN: 1 On Success.
  * RETURN: 0 On Not Avaible/Failure.
  */
 int 
@@ -759,8 +763,8 @@ XCBPollForReply(
 /* Check if a specified cookie request has a reply available from the XServer.
  * This is different from XCBPollForReply() as it assumes the request has already be widened.
  *
- * RETURN: 1 On Sucess.
- * RETURN: 0 ON Not Avaible/Failure.
+ * RETURN: 1 On Success.
+ * RETURN: 0 On Not Avaible/Failure.
  */
 int 
 XCBPollForReply64(
@@ -769,8 +773,8 @@ XCBPollForReply64(
         void **reply);
 /* Check if a specified cookie request has a reply available from the XServer.
  * 
- * RETURN: NULL
- * RETURN: void *
+ * RETURN: NULL On Not Avaible/Failure.
+ * RETURN: void * On Success.
  */
 void *
 XCBCheckReply(
@@ -779,8 +783,8 @@ XCBCheckReply(
 /* Check if a specified cookie request has a reply available from the XServer.
  * This is different from XCBCheckReply() as it assumes the request has already be widened.
  *
- * RETURN: NULL
- * RETURN: void *
+ * RETURN: NULL On not Avaible/Failure.
+ * RETURN: void * On Success.
  */
 void *
 XCBCheckReply64(
@@ -944,6 +948,18 @@ XCBCreateWindow(
         XCBVisual visual, 
         uint32_t valuemask, 
         const uint32_t *value_list);
+XCBWindow
+XCBCreateSimpleWindow(
+        XCBDisplay *display,
+        XCBWindow parent,
+        int x,
+        int y,
+        unsigned int width,
+        unsigned int height,
+        int border_width,
+        uint32_t border,
+        uint32_t background
+        );
 
 
 /* GC */

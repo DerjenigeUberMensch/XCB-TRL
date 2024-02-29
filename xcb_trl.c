@@ -608,11 +608,11 @@ XCBGetErrorText(XCBDisplay *display)
 
 
 
-inline void
+inline int 
 XCBNextEvent(XCBDisplay *display, XCBGenericEvent **event_return) 
 {
     /* waits till next event happens before returning */
-    *event_return = xcb_wait_for_event(display);
+    return !!(*event_return = xcb_wait_for_event(display));
 }
 
 inline XCBGenericEvent *
@@ -730,6 +730,29 @@ u8 depth, unsigned int class, XCBVisual visual, u32 valuemask, const u32 *value_
     class, visual, valuemask, used);
     return id;
 }
+
+inline XCBWindow
+XCBCreateSimpleWindow(
+        XCBDisplay *display,
+        XCBWindow parent,
+        int x,
+        int y,
+        unsigned int width,
+        unsigned int height,
+        int border_width,
+        uint32_t border_color,
+        uint32_t background_color
+        )
+{
+    const XCBWindow id = xcb_generate_id(display);
+    const XCBVisual visual = XCBGetScreen(display)->root_visual;
+    const u8  class = XCB_WINDOW_CLASS_INPUT_OUTPUT;
+    const u32 mask = XCB_CW_BACK_PIXEL | XCB_CW_BORDER_PIXEL;
+    const u32 color[2] = { background_color, border_color };
+    xcb_create_window(display, XCB_COPY_FROM_PARENT, id, parent, x, y, width, height, border_width, class, visual, mask, &color);
+    return id;
+}
+
 
 inline XCBGC
 XCBCreateGC(XCBDisplay *display, XCBDrawable drawable, 
