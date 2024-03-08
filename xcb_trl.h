@@ -26,11 +26,26 @@
  * 2. ctrl+f or '/' for search, no need for grep.
  * 3. too much work.
  * 4. I am Lazy.
+ *
+ * Main reason to not use xcb
+ * 1.) Way harder to use to its syncrounous nature
+ * Really, Xlib's locking of Server is overblown out of porpotion when talking about xcb being better.
+ * The main problem though with Xlib is that it could be async (which would make xcb less useful) and most of the functions are.
+ * HOWEVER some "vital" or imporant ones arent which is the main problem with Xlib.
+ * Secondly Xlib uses quite a bit more resources than xcb which is also why xcb use often times "better" for the most part though Xlib is fine,
+ * What really should happen is we build a toolkit around xcb and NOT use Xlib in the first place. AND not do what Xlib did and be syncrounous.
  */
 
 /*
  * Basic XCB Usage.
  *
+ *
+ *
+ *
+ * xcb has a async way of handling stuff so when you call a function to do something async, unless you poll for reply nothing will happen.
+ * This is because the item is buffered to itself meaning that unless you call XCBSync() or XCBFlush() you will never get your event back.
+ * This is bad as it makes some things harder to use but its mostly good cause you can make a buffered requests and then just send that 1 big buffer.
+ * This saves on time asking for ping backs for every single requests.
  *
  *
  * <<< Event handling >>>
@@ -788,6 +803,13 @@ XCBMoveResizeWindow(
         uint32_t height);
 
 XCBCookie
+XCBResizeWindow(
+        XCBDisplay *display, 
+        XCBWindow window, 
+        uint32_t width, 
+        uint32_t height);
+
+XCBCookie
 XCBRaiseWindow(
         XCBDisplay *display, 
         XCBWindow window);
@@ -1034,10 +1056,50 @@ XCBSetIOErrorHandler(
         XCBDisplay *display, 
         void *IOHandler);
 
-/* TODO */
+
+/* Returns Bad(The error) using a number provided.
+ * The number is from the generic structure XCBGenericError.
+ * XCBGenericError *err;
+ * err->error_code;
+ *
+ * NOTE: This function doesnt use too much binary data and is safe to use.
+ *
+ * RETURN: Error text on Success.
+ * RETURN: NULL on failure.
+ */
 char *
-XCBGetErrorText(
-        XCBDisplay *display);
+XCBErrorCodeText(
+        uint8_t error_code);
+
+/* Returns (The error) using a number provided.
+ * The number is from the generic structure XCBGenericError.
+ * XCBGenericError *err;
+ * err->major_code;
+ *
+ * NOTE: Usage may result in bigger binary sizes.
+ *
+ * RETURN: Error text on Success.
+ * RETURN: NULL on failure.
+ */
+char *
+XCBErrorMajorCodeText(
+        uint8_t major_code);
+
+/*  
+ * NOTE: This function is currently not supported.
+ *
+ * Returns (The error) using a number provided by.
+ * The number is from the generic structure XCBGenericError.
+ * XCBGenericError *err;
+ * err->minor_code;
+ *
+ * RETURN: Error text on Success.
+ * RETURN: NULL on failure.
+ */
+char *
+XCBErrorMinorCodeText(
+        uint16_t minor_code
+        );
 
 
 
@@ -1119,6 +1181,15 @@ XCBAllowEvents(
         XCBDisplay *display, 
         uint8_t mode, 
         XCBTimestamp timestamp);
+
+XCBCookie
+XCBSendEvent(
+        XCBDisplay *display,
+        XCBWindow window,
+        uint8_t propagate,
+        uint32_t event_mask,
+        const char *event
+        );
 /* 
  * Gets and returns the next Event from the XServer.
  * This returns a structure called xcb_generic_event_t.

@@ -23,9 +23,15 @@
 #include <xcb/xcb_xrm.h>
 #include <xcb/xcb_errors.h>
 
+
+/* error codes */
+#include <X11/X.h>
+#include <X11/Xproto.h>
+
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
+
 
 typedef uint8_t  u8;
 typedef uint16_t u16;
@@ -333,6 +339,14 @@ XCBMoveResizeWindow(XCBDisplay *display, XCBWindow window, i32 x, i32 y, u32 wid
 }
 
 XCBCookie
+XCBResizeWindow(XCBDisplay *display, XCBWindow window, u32 width, u32 height)
+{
+    const u32 values[] = { width, height };
+    const u32 mask = XCB_CONFIG_WINDOW_WIDTH|XCB_CONFIG_WINDOW_HEIGHT;
+    return xcb_configure_window(display, window, mask, values);
+}
+
+XCBCookie
 XCBRaiseWindow(XCBDisplay *display, XCBWindow window)
 {
     const u32 values = { XCB_STACK_MODE_ABOVE };
@@ -596,22 +610,194 @@ XCBSetIOErrorHandler(XCBDisplay *display, void *IOHandler)
 }
 
 char *
-XCBGetErrorText(XCBDisplay *display)
-{
-    /* TODO */
-    return "";
+XCBErrorCodeText(
+        uint8_t error_code)
+{                                           /* array size - 1 */
+    error_code *= error_code > 0 && error_code < 18 - 1;
+    char *errs[18] =
+    {
+        [0] = NULL,
+        [BadRequest] = "BadRequest",
+        [BadValue] = "BadValue",
+        [BadWindow] = "BadWindow",
+        [BadPixmap] = "BadPixmap",
+        [BadAtom] = "BadAtom",
+        [BadCursor] = "BadCursor",
+        [BadFont] = "BadFont",
+        [BadMatch] = "BadMatch",
+        [BadDrawable] = "BadDrawable",
+        [BadAccess] = "BadAccess",
+        [BadAlloc] = "BadAlloc",
+        [BadColor] = "BadColor",
+        [BadGC] = "BadGC",
+        [BadIDChoice] = "BadIDChoice",
+        [BadName] = "BadName",
+        [BadLength] = "BadLength",
+        [BadImplementation] = "BadImplementation",
+    };
+
+    if(errs[error_code])
+    {   return errs[error_code];
+    }
+    return NULL;
 }
 
-
-
-
-
+char *
+XCBErrorMajorCodeText(
+        uint8_t major_code)
+{                                           /* array size - 1 */
+    major_code *= major_code > 0 && major_code < 128 - 1;
+    char *errs[128] = 
+    {
+        [0] = NULL,
+        [X_CreateWindow] = "CreateWindow",
+        [X_ChangeWindowAttributes] = "ChangeWindowAttributes",
+        [X_GetWindowAttributes] = "GetWindowAttributes",
+        [X_DestroyWindow] = "DestroyWindow",
+        [X_DestroySubwindows] = "DestroySubwindows",
+        [X_ChangeSaveSet] = "ChangeSaveSet",
+        [X_ReparentWindow] = "ReparentWindow",
+        [X_MapWindow] = "MapWindow",
+        [X_MapSubwindows] = "MapSubwindows",
+        [X_UnmapWindow] = "UnmapWindow",
+        [X_UnmapSubwindows] = "UnmapSubwindows",
+        [X_ConfigureWindow] = "ConfigureWindow",
+        [X_CirculateWindow] = "CirculateWindow",
+        [X_GetGeometry] = "GetGeometry",
+        [X_QueryTree] = "QueryTree",
+        [X_InternAtom] = "InternAtom",
+        [X_GetAtomName] = "GetAtomName",
+        [X_ChangeProperty] = "ChangeProperty",
+        [X_DeleteProperty] = "DeleteProperty",
+        [X_GetProperty] = "GetProperty",
+        [X_ListProperties] = "ListProperties",
+        [X_SetSelectionOwner] = "SetSelectionOwner",
+        [X_GetSelectionOwner] = "GetSelectionOwner",
+        [X_ConvertSelection] = "ConvertSelection",
+        [X_SendEvent] = "SendEvent",
+        [X_GrabPointer] = "GrabPointer",
+        [X_UngrabPointer] = "UngrabPointer",
+        [X_GrabButton] = "GrabButton",
+        [X_UngrabButton] = "UngrabButton",
+        [X_ChangeActivePointerGrab] = "ChangeActivePointerGrab",
+        [X_GrabKeyboard] = "GrabKeyboard",
+        [X_UngrabKeyboard] = "UngrabKeyboard",
+        [X_GrabKey] = "GrabKey",
+        [X_UngrabKey] = "UngrabKey",
+        [X_AllowEvents] = "AllowEvents",
+        [X_GrabServer] = "GrabServer",
+        [X_UngrabServer] = "UngrabServer",
+        [X_QueryPointer] = "QueryPointer",
+        [X_GetMotionEvents] = "GetMotionEvents",
+        [X_TranslateCoords] = "TranslateCoords",
+        [X_WarpPointer] = "WarpPointer",
+        [X_SetInputFocus] = "SetInputFocus",
+        [X_GetInputFocus] = "GetInputFocus",
+        [X_QueryKeymap] = "QueryKeymap",
+        [X_OpenFont] = "OpenFont",
+        [X_CloseFont] = "CloseFont",
+        [X_QueryFont] = "QueryFont",
+        [X_QueryTextExtents] = "QueryTextExtents",
+        [X_ListFonts] = "ListFonts",
+        [X_ListFontsWithInfo] = "ListFontsWithInfo",
+        [X_SetFontPath] = "SetFontPath",
+        [X_GetFontPath] = "GetFontPath",
+        [X_CreatePixmap] = "CreatePixmap",
+        [X_FreePixmap] = "FreePixmap",
+        [X_CreateGC] = "CreateGC",
+        [X_ChangeGC] = "ChangeGC",
+        [X_CopyGC] = "CopyGC",
+        [X_SetDashes] = "SetDashes",
+        [X_SetClipRectangles] = "SetClipRectangles",
+        [X_FreeGC] = "FreeGC",
+        [X_ClearArea] = "ClearArea",
+        [X_CopyArea] = "CopyArea",
+        [X_CopyPlane] = "CopyPlane",
+        [X_PolyPoint] = "PolyPoint",
+        [X_PolyLine] = "PolyLine",
+        [X_PolySegment] = "PolySegment",
+        [X_PolyRectangle] = "PolyRectangle",
+        [X_PolyArc] = "PolyArc",
+        [X_FillPoly] = "FillPoly",
+        [X_PolyFillRectangle] = "PolyFillRectangle",
+        [X_PolyFillArc] = "PolyFillArc",
+        [X_PutImage] = "PutImage",
+        [X_GetImage] = "GetImage",
+        [X_PolyText8] = "PolyText8",
+        [X_PolyText16] = "PolyText16",
+        [X_ImageText8] = "ImageText8",
+        [X_ImageText16] = "ImageText16",
+        [X_CreateColormap] = "CreateColormap",
+        [X_FreeColormap] = "FreeColormap",
+        [X_CopyColormapAndFree] = "CopyColormapAndFree",
+        [X_InstallColormap] = "InstallColormap",
+        [X_UninstallColormap] = "UninstallColormap",
+        [X_ListInstalledColormaps] = "ListInstalledColormaps",
+        [X_AllocColor] = "AllocColor",
+        [X_AllocNamedColor] = "AllocNamedColor",
+        [X_AllocColorCells] = "AllocColorCells",
+        [X_AllocColorPlanes] = "AllocColorPlanes",
+        [X_FreeColors] = "FreeColors",
+        [X_StoreColors] = "StoreColors",
+        [X_StoreNamedColor] = "StoreNamedColor",
+        [X_QueryColors] = "QueryColors",
+        [X_LookupColor] = "LookupColor",
+        [X_CreateCursor] = "CreateCursor",
+        [X_CreateGlyphCursor] = "CreateGlyphCursor",
+        [X_FreeCursor] = "FreeCursor",
+        [X_RecolorCursor] = "RecolorCursor",
+        [X_QueryBestSize] = "QueryBestSize",
+        [X_QueryExtension] = "QueryExtension",
+        [X_ListExtensions] = "ListExtensions",
+        [X_ChangeKeyboardMapping] = "ChangeKeyboardMapping",
+        [X_GetKeyboardMapping] = "GetKeyboardMapping",
+        [X_ChangeKeyboardControl] = "ChangeKeyboardControl",
+        [X_GetKeyboardControl] = "GetKeyboardControl",
+        [X_Bell] = "Bell",
+        [X_ChangePointerControl] = "ChangePointerControl",
+        [X_GetPointerControl] = "GetPointerControl",
+        [X_SetScreenSaver] = "SetScreenSaver",
+        [X_GetScreenSaver] = "GetScreenSaver",
+        [X_ChangeHosts] = "ChangeHosts",
+        [X_ListHosts] = "ListHosts",
+        [X_SetAccessControl] = "SetAccessControl",
+        [X_SetCloseDownMode] = "SetCloseDownMode",
+        [X_KillClient] = "KillClient",
+        [X_RotateProperties] = "RotateProperties",
+        [X_ForceScreenSaver] = "ForceScreenSaver",
+        [X_SetPointerMapping] = "SetPointerMapping",
+        [X_GetPointerMapping] = "GetPointerMapping",
+        [X_SetModifierMapping] = "SetModifierMapping",
+        [X_GetModifierMapping] = "GetModifierMapping",
+        [X_NoOperation] = "NoOperation"
+    };
+    if(errs[major_code])
+    {   return errs[major_code];
+    }
+    return NULL;
+}
 
 /* events */
 
 
 
+XCBCookie
+XCBAllowEvents(XCBDisplay *display, u8 mode, XCBTimestamp time)
+{
+    return xcb_allow_events(display, mode, time);
+}
 
+XCBCookie
+XCBSendEvent(
+        XCBDisplay *display,
+        XCBWindow window,
+        uint8_t propagate,
+        uint32_t event_mask,
+        const char *event
+        )
+{
+    return xcb_send_event(display, propagate, window, event_mask, event);
+}
 
 int 
 XCBNextEvent(XCBDisplay *display, XCBGenericEvent **event_return) 
