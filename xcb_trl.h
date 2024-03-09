@@ -388,6 +388,7 @@ typedef xcb_atom_t XCBAtom;
 typedef xcb_time_t XCBTime;
 typedef xcb_timestamp_t XCBTimestamp;
 typedef xcb_client_message_data_t  XCBClientMessageData;
+typedef xcb_get_property_reply_t XCBWindowProperty;
 
 /* Analagous to Xlib's XA_(type)
  * XCB_ATOM_NONE = 0,
@@ -846,36 +847,92 @@ XCBSetSibling(
         XCBWindow window, 
         XCBWindow sibling);
 
-XCBAtomCookie 
+XCBCookie
 XCBInternAtomCookie(
         XCBDisplay *display, 
         const char *name, 
         int only_if_exists);
 
+/*
+ *
+ * NOTE: reply must be freed by caller.
+ *
+ * RETURN: 0 on Failure.
+ *
+ */
 XCBAtom 
 XCBInternAtomReply(
         XCBDisplay *display, 
-        XCBAtomCookie cookie);
+        XCBCookie cookie);
 
-XCBWindowAttributesCookie 
+XCBCookie
+XCBGetPropertyCookie(
+        XCBDisplay *display,
+        XCBWindow w,
+        XCBAtom property,
+        uint32_t long_offset,
+        uint32_t long_length,
+        uint8_t _delete,
+        XCBAtom req_type
+        );
+/*
+ *
+ * NOTE: reply must be freed by caller.
+ *
+ * RETURN: 0 on Failure.
+ *
+ */
+XCBWindowProperty *
+XCBGetPropertyReply(
+        XCBDisplay *display,
+        XCBCookie cookie
+        );
+
+XCBCookie
+XCBGetWindowPropertyCookie(
+        XCBDisplay *display,
+        XCBWindow w,
+        XCBAtom property,
+        uint32_t long_offset,
+        uint32_t long_length,
+        uint8_t _delete,
+        XCBAtom req_type
+        );
+
+
+XCBCookie
 XCBGetWindowAttributesCookie(
         XCBDisplay *display, 
         XCBWindow window);
 
+/*
+ *
+ * NOTE: reply must be freed by caller.
+ *
+ * RETURN: NULL on Failure.
+ *
+ */
 XCBWindowAttributesReply *
 XCBGetWindowAttributesReply(
         XCBDisplay *display, 
-        XCBWindowAttributesCookie cookie);
+        XCBCookie cookie);
 
-XCBGeometryCookie 
+XCBCookie
 XCBGetWindowGeometryCookie(
         XCBDisplay *display, 
         XCBWindow window);
 
+/*
+ *
+ * NOTE: reply must be freed by caller.
+ *
+ * RETURN: NULL on Failure.
+ *
+ */
 XCBGeometry *
 XCBGetWindowGeometryReply(
         XCBDisplay *display, 
-        XCBGeometryCookie cookie);
+        XCBCookie cookie);
 
 XCBPixmap 
 XCBCreatePixmap(
@@ -911,18 +968,25 @@ XCBCloseFont(
         XCBFont id
         );
 
-XCBPointerCookie 
+XCBCookie
 XCBQueryPointerCookie(
         XCBDisplay *display, 
         XCBWindow window);
 
+/*
+ *
+ * NOTE: reply must be freed by caller.
+ *
+ * RETURN: 0 on Failure.
+ *
+ */
 XCBPointerReply *
 XCBQueryPointerReply(
         XCBDisplay *display, 
-        XCBPointerCookie cookie);
+        XCBCookie cookie);
 /**/
 /* text props */
-XCBTextPropertyCookie 
+XCBCookie
 XCBGetTextPropertyCookie(
         XCBDisplay *display, 
         XCBWindow window, 
@@ -936,7 +1000,7 @@ XCBGetTextPropertyCookie(
 int 
 XCBGetTextPropertyReply(
         XCBDisplay *display, 
-        XCBTextPropertyCookie cookie, 
+        XCBCookie cookie, 
         XCBTextProperty *reply_return);
 
 /*
@@ -1038,12 +1102,16 @@ XCBHasDisplayError(
         XCBDisplay *display);
 
 
-/* NONFUNCTIONING
+/* 
  * 1 -> Error handler set.
  * 0 -> Error handler unset.
+ *
  * Incase of an unset error handler (default) XCB simply calls die() when an error occurs which may not be desired.
  * One should note that this function simply sets the function to be called when an error occurs using this API.
  * Meaning that this only handles calls made by this API, this does not handle any errors caused by another thread or raw xcb calls.
+ *
+ * NOTE: Handler provided MUST free() the XCBGenericError * when done
+ *
  * RETURN: {1, 0}.
  */
 int 
@@ -1611,16 +1679,23 @@ XCBKeySymbolsFree(
         XCBKeySymbols *keysyms);
 
 
-XCBKeyboardMappingCookie 
+XCBCookie
 XCBGetKeyboardMappingCookie(
         XCBDisplay *display, 
         XCBKeyCode first_keycode, 
         uint8_t count);
 
+/*
+ *
+ * NOTE: reply must be freed by caller.
+ *
+ * RETURN: 0 on Failure.
+ *
+ */
 XCBKeyboardMapping *
 XCBGetKeyboardMappingReply(
         XCBDisplay *display, 
-        XCBKeyboardMappingCookie cookie);
+        XCBCookie cookie);
 
 /* Send a event to the XServer to map the window specified;
  *
@@ -1854,9 +1929,9 @@ XCBPrefetchMaximumRequestLength(
  *  ICCCM
  */
 
-typedef xcb_get_property_cookie_t XCBGetPropertyCookie;
-typedef xcb_icccm_get_wm_protocols_reply_t XCBGetWMProtocol;
-XCBGetPropertyCookie
+typedef xcb_icccm_get_wm_protocols_reply_t XCBWMProtocols;
+
+XCBCookie
 XCBGetWMProtocolsCookie(
         XCBDisplay *display, 
         XCBWindow window, 
@@ -1873,13 +1948,13 @@ XCBGetWMProtocolsCookie(
 int
 XCBGetWMProtocolsReply(
         XCBDisplay *display, 
-        XCBGetPropertyCookie cookie,
-        XCBGetWMProtocol *protocol_return
+        XCBCookie cookie,
+        XCBWMProtocols *protocol_return
         );
 
 void
 XCBWipeGetWMProtocolsReply(
-        XCBGetWMProtocol *protocols);
+        XCBWMProtocols *protocols);
 
 
 

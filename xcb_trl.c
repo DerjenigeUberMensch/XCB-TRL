@@ -89,9 +89,6 @@ _xcb_err_handler(XCBDisplay *display, XCBGenericError *err)
     }
     if(!_handler)
     {   
-        if(err->error_code == XCB_NONE)
-        {   return;
-        }
         _xcb_die("error_code: [%d], major_code: [%d], minor_code: [%d]\n"
             "sequence: [%d], response_type: [%d], resource_id: [%d]\n"
             "full_sequence: [%d]\n"
@@ -333,7 +330,7 @@ XCBMoveWindow(XCBDisplay *display, XCBWindow window, i32 x, i32 y)
 XCBCookie
 XCBMoveResizeWindow(XCBDisplay *display, XCBWindow window, i32 x, i32 y, u32 width, u32 height)
 {
-    const i32 values[] = { x, y, width, height };
+    const i64 values[] = { x, y, width, height };
     const u32 mask = XCB_CONFIG_WINDOW_X|XCB_CONFIG_WINDOW_Y|XCB_CONFIG_WINDOW_WIDTH|XCB_CONFIG_WINDOW_HEIGHT;
     return xcb_configure_window(display, window, mask, values);
 }
@@ -409,49 +406,66 @@ XCBSetSibling(XCBDisplay *display, XCBWindow window, XCBWindow sibling)
     return xcb_configure_window(display, window, mask, &values);
 }
 
-XCBWindowAttributesCookie
+XCBCookie
 XCBGetWindowAttributesCookie(XCBDisplay *display, XCBWindow window)
 {
-    return xcb_get_window_attributes(display, window);
+    const xcb_get_window_attributes_cookie_t cookie = xcb_get_window_attributes(display, window);
+    XCBCookie ret = { .sequence = cookie.sequence };
+    return ret;
 }
 
 XCBWindowAttributesReply *
-XCBGetWindowAttributesReply(XCBDisplay *display, XCBWindowAttributesCookie cookie)
+XCBGetWindowAttributesReply(XCBDisplay *display, XCBCookie cookie)
 {
     XCBGenericError *err = NULL;
     XCBWindowAttributesReply *reply = NULL;
-    reply = xcb_get_window_attributes_reply(display, cookie, &err);
-    _xcb_err_handler(display, err);
+    const xcb_get_window_attributes_cookie_t cookie1 = { .sequence = cookie.sequence };
+    reply = xcb_get_window_attributes_reply(display, cookie1, &err);
+    if(err)
+    {
+        _xcb_err_handler(display, err);
+        return NULL;
+    }
     return reply;
 }
 
-XCBGeometryCookie
+XCBCookie
 XCBGetWindowGeometryCookie(XCBDisplay *display, XCBWindow window)
 {
-    return xcb_get_geometry(display, window);
+    const xcb_get_geometry_cookie_t cookie = xcb_get_geometry(display, window);
+    XCBCookie ret = { .sequence = cookie.sequence };
+    return ret;
 }
 
 XCBGeometry *
-XCBGetWindowGeometryReply(XCBDisplay *display, XCBGeometryCookie cookie)
+XCBGetWindowGeometryReply(XCBDisplay *display, XCBCookie cookie)
 {
     XCBGenericError *err = NULL;
     XCBGeometry *reply = NULL;
-    reply = xcb_get_geometry_reply(display, cookie, &err);
-    _xcb_err_handler(display, err);
+    const xcb_get_geometry_cookie_t cookie1 = { .sequence = cookie.sequence };
+    reply = xcb_get_geometry_reply(display, cookie1, &err);
+    if(err)
+    {   
+        _xcb_err_handler(display, err);
+        return NULL;
+    }
     return reply;
 }
 
-XCBAtomCookie
+XCBCookie
 XCBInternAtomCookie(XCBDisplay *display, const char *name, int only_if_exists)
 {
-    return xcb_intern_atom(display, only_if_exists, strlen(name), name);
+    const xcb_intern_atom_cookie_t cookie = xcb_intern_atom(display, only_if_exists, strlen(name), name);
+    XCBCookie ret = { .sequence = cookie.sequence };
+    return ret;
 }
 
 XCBAtom
-XCBInternAtomReply(XCBDisplay *display, XCBAtomCookie cookie)
+XCBInternAtomReply(XCBDisplay *display, XCBCookie cookie)
 {
     XCBGenericError *err = NULL;
-    xcb_intern_atom_reply_t *reply = xcb_intern_atom_reply(display, cookie, &err);
+    const xcb_intern_atom_cookie_t cookie1 = { .sequence = cookie.sequence };
+    xcb_intern_atom_reply_t *reply = xcb_intern_atom_reply(display, cookie1, &err);
     _xcb_err_handler(display, err);
     xcb_atom_t atom = 0;
     if(reply)
@@ -461,6 +475,56 @@ XCBInternAtomReply(XCBDisplay *display, XCBAtomCookie cookie)
     }
     return atom;
 }
+
+XCBCookie
+XCBGetPropertyCookie(
+        XCBDisplay *display,
+        XCBWindow window,
+        XCBAtom property,
+        uint32_t long_offset,
+        uint32_t long_length,
+        uint8_t _delete,
+        XCBAtom req_type
+        )
+{
+    const xcb_get_property_cookie_t cookie = xcb_get_property(display, _delete, window, property, req_type, long_offset, long_length);
+    XCBCookie ret = { .sequence = cookie.sequence };
+    return ret;
+}
+
+XCBCookie 
+XCBGetWindowPropertyCookie(
+        XCBDisplay *display,
+        XCBWindow window,
+        XCBAtom property,
+        uint32_t long_offset,
+        uint32_t long_length,
+        uint8_t _delete,
+        XCBAtom req_type
+        )
+{
+    const xcb_get_property_cookie_t cookie = xcb_get_property(display, _delete, window, property, req_type, long_offset, long_length);
+    XCBCookie ret = { .sequence = cookie.sequence };
+    return ret;
+}
+
+XCBWindowProperty *
+XCBGetPropertyReply(
+        XCBDisplay *display,
+        XCBCookie cookie
+        )
+{
+    XCBGenericError *err = NULL;
+    const xcb_get_property_cookie_t cookie1 = { .sequence = cookie.sequence };
+    xcb_get_property_reply_t *ret =  xcb_get_property_reply(display, cookie1, &err);
+    if(err)
+    {
+        _xcb_err_handler(display, err);
+        return NULL;
+    }
+    return ret;
+}
+
 
 
 
@@ -488,11 +552,12 @@ XCBCreateFontCursor(XCBDisplay *display, int shape)
     const u16 bgblue = 0;
 
     const xcb_font_t font = xcb_generate_id(display);
+    const u8 strlenofcursor = 6;    /* X only reads data for those 6 chars so no need for +1 for the \0 character */
 
-    (void)xcb_open_font(display, font, strlen("cursor"), "cursor");
+    xcb_open_font(display, font, strlenofcursor, "cursor");
 
     const xcb_cursor_t id = xcb_generate_id(display);
-    (void)xcb_create_glyph_cursor(display, id, font, font, shape, shape + 1,
+    xcb_create_glyph_cursor(display, id, font, font, shape, shape + 1,
                             fgred, fggreen, fgblue,
                             bgred, bggreen, bgblue);
     return id;
@@ -527,19 +592,26 @@ XCBCloseFont(XCBDisplay *display, XCBFont id)
 
 /* text property textproperty */
 
-XCBTextPropertyCookie
+XCBCookie
 XCBGetTextPropertyCookie(XCBDisplay *display, XCBWindow window, XCBAtom property)
 {
-    return xcb_icccm_get_text_property(display, window, property);
+    const xcb_get_property_cookie_t cookie = xcb_icccm_get_text_property(display, window, property);
+    XCBCookie ret = { .sequence = cookie.sequence };
+    return ret;
 }
 
 int 
-XCBGetTextPropertyReply(XCBDisplay *display, XCBTextPropertyCookie cookie, XCBTextProperty *reply_return)
+XCBGetTextPropertyReply(XCBDisplay *display, XCBCookie cookie, XCBTextProperty *reply_return)
 {
     XCBGenericError *err = NULL;
     int status = 0;
-    status = xcb_icccm_get_text_property_reply(display, cookie, reply_return, &err);
-    _xcb_err_handler(display, err);
+    const xcb_get_property_cookie_t cookie1 = { .sequence = cookie.sequence };
+    status = xcb_icccm_get_text_property_reply(display, cookie1, reply_return, &err);
+    if(err)
+    {   
+        _xcb_err_handler(display, err);
+        return 0;
+    }
     return status;
 }
 int
@@ -939,33 +1011,47 @@ XCBKeySymbolsFree(XCBKeySymbols *keysyms)
     xcb_key_symbols_free(keysyms);
 }
 
-XCBKeyboardMappingCookie 
+XCBCookie
 XCBGetKeyboardMappingCookie(XCBDisplay *display, XCBKeyCode first_keycode, u8 count)
 {
-    return xcb_get_keyboard_mapping(display, first_keycode, count);
+    const xcb_get_keyboard_mapping_cookie_t cookie = xcb_get_keyboard_mapping(display, first_keycode, count);
+    XCBCookie ret = { .sequence = cookie.sequence };
+    return ret;
 }
 
 XCBKeyboardMapping *
-XCBGetKeyboardMappingReply(XCBDisplay *display, XCBKeyboardMappingCookie cookie)
+XCBGetKeyboardMappingReply(XCBDisplay *display, XCBCookie cookie)
 {
     XCBGenericError *err = NULL;
-    XCBKeyboardMapping *reply = xcb_get_keyboard_mapping_reply(display, cookie, &err);
-    _xcb_err_handler(display, err);
+    const xcb_get_keyboard_mapping_cookie_t cookie1 = { .sequence = cookie.sequence };
+    XCBKeyboardMapping *reply = xcb_get_keyboard_mapping_reply(display, cookie1, &err);
+    if(err)
+    {   
+        _xcb_err_handler(display, err);
+        return NULL;
+    }
     return reply;
 }
 
-XCBPointerCookie
+XCBCookie
 XCBQueryPointerCookie(XCBDisplay *display, XCBWindow window)
 {
-    return xcb_query_pointer(display, window);
+    const xcb_query_pointer_cookie_t cookie = xcb_query_pointer(display, window);
+    const XCBCookie ret = { .sequence = cookie.sequence };
+    return ret;
 }
 
 XCBPointerReply *
-XCBQueryPointerReply(XCBDisplay *display, XCBPointerCookie cookie)
+XCBQueryPointerReply(XCBDisplay *display, XCBCookie cookie)
 {
     XCBGenericError *err = NULL;
-    XCBPointerReply *reply = xcb_query_pointer_reply(display, cookie, &err);
-    _xcb_err_handler(display, err);
+    const xcb_query_pointer_cookie_t cookie1 = { .sequence = cookie.sequence };
+    XCBPointerReply *reply = xcb_query_pointer_reply(display, cookie1, &err);
+    if(err)
+    {   
+        _xcb_err_handler(display, err);
+        return NULL;
+    }
     return reply;
 }
 
@@ -1141,33 +1227,39 @@ XCBPrefetchMaximumRequestLength(XCBDisplay *display)
 
 /* ICCCM */
 
-XCBGetPropertyCookie
+XCBCookie
 XCBGetWMProtocolsCookie(
         XCBDisplay *display, 
         XCBWindow window, 
         XCBAtom protocol)
 {
-    return xcb_icccm_get_wm_protocols(display, window, protocol);
+    const xcb_get_property_cookie_t cookie = xcb_icccm_get_wm_protocols(display, window, protocol);
+    XCBCookie ret = { .sequence = cookie.sequence };
+    return ret;
 }
 
 int
 XCBGetWMProtocolsReply(
         XCBDisplay *display, 
-        XCBGetPropertyCookie cookie,
-        XCBGetWMProtocol *protocol_return
+        XCBCookie cookie,
+        XCBWMProtocols *protocol_return
         )
 {
     XCBGenericError *err = NULL;
-    int ret;
-    ret = xcb_icccm_get_wm_protocols_reply(display, cookie, protocol_return, &err);
-    _xcb_err_handler(display, err);
+    const xcb_get_property_cookie_t cookie1 = { .sequence = cookie.sequence };
+    const int ret = xcb_icccm_get_wm_protocols_reply(display, cookie1, protocol_return, &err);
+    if(err)
+    {   
+        _xcb_err_handler(display, err);
+        return 0;
+    }
     return ret;
 
 }
 
 void
 XCBWipeGetWMProtocolsReply(
-        XCBGetWMProtocol *protocols)
+        XCBWMProtocols *protocols)
 {
     xcb_icccm_get_wm_protocols_reply_wipe(protocols);
 }
