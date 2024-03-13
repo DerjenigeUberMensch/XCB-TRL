@@ -44,12 +44,20 @@
  * Basic XCB Usage.
  *
  *
+ * NOTE: This trl is NOT thread safe, instead one must manually lock the display for thread safety.
+ * NOTE: These functions only LOCK the display NOT the current thread.
+ * XCBLockDisplay();    // Analagous to pthread_mutex_lock
+ * XCBUnlockDisplay();  // Analagous to pthread_mutex_unlock
  *
  *
  * xcb has a async way of handling stuff so when you call a function to do something async, unless you poll for reply nothing will happen.
  * This is because the item is buffered to itself meaning that unless you call XCBSync() or XCBFlush() you will never get your event back.
  * This is bad as it makes some things harder to use but its mostly good cause you can make a buffered requests and then just send that 1 big buffer.
  * This saves on time asking for ping backs for every single requests.
+ * However do note that non-event type requests such as quering a windows attributes, cookies are sent immediatly to the XServer.
+ * The Caveat with these is that you have to wait for the reply back. via the _reply() version of the functions.
+ * Secondly with these if you never call for a _reply() of that cookie then you WILL leak memory. as you need to free 90% of the _reply() versions.
+ *
  *
  *
  * <<< Event handling >>>
@@ -486,8 +494,13 @@ typedef xcb_drawable_t XCBDrawable;
 typedef xcb_point_t XCBPoint;
 typedef xcb_font_t XCBFont;
 typedef xcb_generic_event_t XCBGenericEvent;
+typedef xcb_generic_event_t XCBEvent;
+
 typedef xcb_generic_reply_t XCBGenericReply;
+typedef xcb_generic_reply_t XCBReply;
+
 typedef xcb_generic_error_t XCBGenericError;
+typedef xcb_generic_error_t XCBError;
 
 typedef xcb_query_pointer_reply_t XCBPointerReply;
 
@@ -581,11 +594,9 @@ enum
  *
  *
  * display_name:                Pass in as ":X" where X is the number of the display to connect to.              
- * *screen_number:              This returns the display screen number.
+ * *screen_number_return:       This returns the display screen number.
  * RETURN: NULL on Failure.
  * RETURN: XCBDisplay * on Success.
- *
- * NOTE: To check error use XCBGetErrorText() or see XCBCheckDisplayError() to get error number.
  */
 XCBDisplay *
 XCBOpenDisplay(
@@ -593,16 +604,16 @@ XCBOpenDisplay(
         int *screen_number_return);
 /* 
  * Opens the display and returns a XCBDisplay* on Success.
- * Unchecked, caller must check for connection error using XCBCheckDisplayError();
+ * Unchecked, caller must check for connection error using XCBCheckDisplayError(display);
  *
  *
  * display_name:                Pass in as ":X" where X is the number of the display to connect to.              
- * *screen_number:              This returns the display screen number.
+ * *screen_number_return:       This returns the display screen number.
+ * 
  * RETURN: XCB Display * ;
- * RETURN: NULL on I/O error (rare)
  *
  * NOTE: This function will NEVER return NULL.
- * NOTE: To check error use XCBGetErrorText() or see XCBCheckDisplayError() to get error number.
+ * NOTE: To check error use XCBCheckDisplayError() to get error number.
  */
 XCBDisplay *
 XCBOpenConnection(
@@ -811,6 +822,15 @@ XCBWhitePixel(
 void 
 XCBSync(
         XCBDisplay *display);
+/* Syncs the current client to the XServer, and discard every event in queue.
+ * For each protocol error received by XCB, XCBSyncf() calls the client application's error handling routine
+ *
+ * NOTE: This function should be used rarely if ever as it ignores any errors possibly generated during operation.
+ */
+void
+XCBSyncf(
+        XCBDisplay *display
+        );
 
 XCBCookie
 XCBMoveWindow(
@@ -1035,6 +1055,19 @@ XCBQueryTreeReply(
         XCBCookie cookie
         );
 
+/* "Query" the trees children, really this is just a offset jmp.
+ * (tree + 1);
+ *
+ *
+ * NOTE: This call IS async.
+ *
+ * RETURN: XCBWindow * On Success.
+ * RETURN: NULL on Failure.
+ */
+XCBWindow *
+XCBQueryTreeChildren(
+        const XCBQueryTree *tree);
+
 XCBCookie
 XCBQueryPointerCookie(
         XCBDisplay *display, 
@@ -1092,8 +1125,8 @@ XCBFreeTextProperty(
  * CONCLUSION: Use XCBSync() when ever possible, and after every ~1000 requests_pending due to the Display buffer filling up.
  *             Though depending on use case XCBSync may never need to be called, if there arent enough requests_pending to fill up Display buffer.
  *
- * RETURN: 0 on Success.
- * RETURN: 1 on Failure.
+ * RETURN: 1 on Success.
+ * RETURN: 0 on Failure.
  */ 
 int 
 XCBFlush(
@@ -1141,7 +1174,7 @@ XCBCheckDisplayError(
  * RETURN: XCB_CONN_CLOSED_INVALID_SCREEN, because the server does not have a screen matching the display.
  */
 int
-XCBCheckDisplayError(
+XCBCheckConnectionError(
         XCBDisplay *display);
 /* Check if the display flag has set a connection error display->has_error;
  * 
@@ -1167,7 +1200,6 @@ XCBHasConnectionError(
 int 
 XCBHasDisplayError(
         XCBDisplay *display);
-
 
 /* 
  * 1 -> Error handler set.
@@ -1197,10 +1229,8 @@ XCBSetIOErrorHandler(
  * XCBGenericError *err;
  * err->error_code;
  *
- * NOTE: This function doesnt use too much binary data and is safe to use.
- *
  * RETURN: Error text on Success.
- * RETURN: NULL on failure.
+ * RETURN: NULL on Failure.
  */
 char *
 XCBErrorCodeText(
@@ -1214,7 +1244,7 @@ XCBErrorCodeText(
  * NOTE: Usage may result in bigger binary sizes.
  *
  * RETURN: Error text on Success.
- * RETURN: NULL on failure.
+ * RETURN: NULL on Failure.
  */
 char *
 XCBErrorMajorCodeText(
@@ -1229,13 +1259,30 @@ XCBErrorMajorCodeText(
  * err->minor_code;
  *
  * RETURN: Error text on Success.
- * RETURN: NULL on failure.
+ * RETURN: NULL on Failure.
  */
 char *
 XCBErrorMinorCodeText(
         uint16_t minor_code
         );
 
+/*
+ * Returns one of the following using the number provided.
+ *
+ * "DisplayError"                                       Because of socket errors, pipe errors or other stream errors.
+ * "ExtensionNotSupported"                              When extension not supported.
+ * "OutOfMemory"                                        When memory not available.
+ * "TooManyRequests"                                    Exceeding request length that server accepts.
+ * "InvalidDisplay"                                     Error during parsing display string.
+ * "InvalidScreen"                                      Because the server does not have a screen matching the display.
+ *
+ * RETURN: Error text on Success.
+ * RETURN: NULL on Failure.
+ */
+char *
+XCBErrorDisplayText(
+        uint8_t display_error
+        );
 
 
 
@@ -1411,8 +1458,8 @@ XCBPollForReply64(
         void **reply);
 /* Check if a specified cookie request has a reply available from the XServer.
  * 
- * RETURN: NULL On Not Avaible/Failure.
  * RETURN: void * On Success.
+ * RETURN: NULL On Not Avaible/Failure.
  */
 void *
 XCBCheckReply(
@@ -1421,8 +1468,8 @@ XCBCheckReply(
 /* Check if a specified cookie request has a reply available from the XServer.
  * This is different from XCBCheckReply() as it assumes the request has already be widened.
  *
- * RETURN: NULL On not Avaible/Failure.
  * RETURN: void * On Success.
+ * RETURN: NULL On not Avaible/Failure.
  */
 void *
 XCBCheckReply64(
@@ -1788,6 +1835,12 @@ XCBCookie
 XCBMapWindow(
         XCBDisplay *display, 
         XCBWindow window);
+
+XCBCookie
+XCBDestroyWindow(
+        XCBDisplay *display,
+        XCBWindow window
+        );
 
 /* windows*/
 XCBWindow 
