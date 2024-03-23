@@ -103,7 +103,7 @@ ck(XCBDisplay *d, XCBCookie c, const char *func)
     }
 }
 
-void  __attribute__ ((noinline)) 
+void  
 XCBBreakPoint(void) 
 {
 }
