@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>XCB TRL</title>
+        <link rel="stylesheet" href="style.css">
+
+    </head>
+    <body>
+        <div class="Title">
+            <h1>
+                X11 C Bindings TRanslation Layer (XCB-TRL)
+            </h1>
+        </div>
+        <div class="Version"
+            <h2>
+                Version 1.0
+            </h2>
+        </div>
+        <div class="Body">
+            <div class="StartingSpace">
+                <hr>
+                <div class="Goal">
+                    <h3>
+                        Goal:
+                    </h3>
+                </div>
+                <div class="StartText">
+                    <p>This Manual has been created for the "XCB-TRL" api and IS NOT a replacement of the XCB Protocol</p>
+                    <p>It is Adviced for New Users to first have an understanding of the X Protocol prefereably some previous knowledge with Xlib </p>
+                </div>
+                <hr>
+            </div>
+            <div class="PageLinks">
+                <h3> Index: </h3>
+                <div class="Types">
+                    <a href="#Variables">               Types:          </a><br />
+                    <dd>
+                        <a href="#XCBConnection">       XCBConnection       </a><br />
+                        <a href="#XCBDisplay">          XCBDisplay          </a><br />
+                        <a href="#XCBSetup">            XCBSetup            </a><br />
+                        <a href="#XCBScreenIterator">   XCBScreenIterator   </a><br />
+                        <a href="#XCBScreen">           XCBScreen           </a><br />
+                        <a href="#XCBWindow">           XCBWindow           </a><br />
+                        <a href="#XCBCursor">           XCBCursor           </a><br />
+                        <a href="#XCBTextProperty">     XCBTextProperty     </a><br />
+                        <a href="#XCBGrabKeyboard">     XCBGrabKeyboard     </a><br />
+                        <a href="#XCBGrabPointer">      XCBGrabPointer      </a><br />
+                        <a href="#XCBCookie">           XCBCookie           </a><br />
+                        <a href="#XCBCookie64">         XCBCookie64         </a><br />
+                        <a href="#XCBKeyboardMapping">  XCBKeyboardMapping  </a><br />
+                        <a href="#XCBKeyboardModifier"> XCBKeyboardModifier </a><br />
+                        <a href="#XCBColormap">         XCBColormap         </a><br />
+                        <a href="#XCBAtom">             XCBAtom             </a><br />
+                        <a href="#XCBTime">             XCBTime             </a><br />
+                        <a href="#XCBTimestamp">        XCBTimestamp        </a><br />
+                        <a href="#XCBClientMessageData">    XCBClientMessageData    </a><br />
+                        <a href="#XCBWindowProperty">   XCBWindowProperty   </a><br />
+                        <a href="#XCBAtomType">         XCBAtomType         </a><br />
+                        <a href="#XCBKeysym">           XCBKeysym           </a><br />
+                        <a href="#XCBKeySymbols">       XCBKeySymbols       </a><br />
+                        <a href="#XCBKeyCode">          XCBKeyCode          </a><br />
+                        <a href="#XCBVisual">           XCBVisual           </a><br />
+                        <a href="#XCBWindowChanges">    XCBWindowChanges    </a><br />
+                        <a href="#XCBQueryExtension">   XCBQueryExtension   </a><br />
+                        <a href="#XCBQueryTree">        XCBQueryTree        </a><br />
+                        <a href="#XCBGetWindowAttributes">  XCBGetWindowAttributes  </a><br />
+                        <a href="#XCBWindowAttributes">     XCBWindowAttributes     </a><br />
+                        <a href="#XCBGeometry">         XCBGeometry         </a><br />
+                        <a href="#XCBWindowGeometry">   XCBWindowGeometry   </a><br />
+                        <a href="#XCBPixmap">           XCBPixmap           </a><br />
+                        <a href="#XCBGC">               XCBGC               </a><br />
+                        <a href="#XCBDrawable">         XCBDrawable         </a><br />
+                        <a href="#XCBPoint">            XCBPoint            </a><br />
+                        <a href="#XCBFont">             XCBFont             </a><br />
+                        <a href="#XCBGenericEvent">     XCBGenericEvent     </a><br />
+                        <a href="#XCBEvent">            XCBEvent            </a><br />
+                        <a href="#XCBGenericReply">     XCBGenericReply     </a><br />
+                        <a href="#XCBReply">            XCBReply            </a><br />
+                        <a href="#XCBGenericError">     XCBGenericError     </a><br />
+                        <a href="#XCBError">            XCBError            </a><br />
+                        <a href="#XCBQueryPointer">     XCBQueryPointer     </a><br />
+
+                        <a href="#XCBKeyPressEvent">    XCBKeyPressEvent    </a><br />
+                        <a href="#XCBKeyReleaseEvent">  XCBKeyReleaseEvent  </a><br />
+                        <a href="#XCBButtonPressEvent"> XCBButtonPressEvent </a><br />
+                        <a href="#XCBButtunReleaseEvent">   XCBButtonReleaseEvent   </a><br />
+                        <a href="#XCBMotionNotifyEvent">    XCBMotionNotify         </a><br />
+                        <a href="#XCBEnterNotifyEvent">     XCBEnterNotifyEvent     </a><br />
+                        <a href="#XCBLeaveNotifyEvent">     XCBLeaveNotifyEvent     </a><br />
+                        <a href="#XCBFocusInEvent">         XCBFocusInEvent         </a><br />
+                        <a href="#XCBKeymapNotifyEvent">    XCBKeymapNotifyEvent    </a><br />
+                        <a href="#XCBExposeEvent">          XCBExposeEvent          </a><br />
+                        <a href="#XCBNoExposeEvent">        XCBNoExposeEvent        </a><br />
+                        <a href="#XCBCirculateNotifyEvent"> XCBCirculateNotifyEvent </a><br />
+                        <a href="#XCBCirculateRequestEvent">XCBCirculateRequestEvent</a><br />
+                        <a href="#XCBMapRequestEvent">      XCBMapRequestEvent      </a><br />
+                        <a href="#XCBConfigureRequestEvent">XCBConfigureRequestEvent</a><br />
+                        <a href="#XCBConfigureNotifyEvent"> XCBConfigureNotifyEvent </a><br />
+                        <a href="#XCBResizeRequestEvent">   XCBResizeRequestEvent   </a><br />
+                        <a href="#XCBCreateNotifyEvent">    XCBCreateNotifyEvent    </a><br />
+                        <a href="#XCBDestroyNotifyEvent">   XCBDestroyNotifyEvent   </a><br />
+                        <a href="#XCBGravityNotifyEvent">   XCBGravityNotifyEvent   </a><br />
+                        <a href="#XCBMapNotifyEvent">       XCBMapNotifyEvent       </a><br />
+                        <a href="#XCBMappingNotifyEvent">   XCBMappingNotifyEvent   </a><br />
+                        <a href="#XCBUnMapNotifyEvent">     XCBUnMapNotifyEvent     </a><br />
+                        <a href="#XCBVisibilityNotifyEvent">    XCBVisibilityNotifyEvent    </a><br />
+                        <a href="#XCBReparentNotifyEvent">      XCBReparentNotifyEvent  </a><br />
+                        <a href="#XCBColormapNotifyEvent">      XCBColormapNotifyEvent  </a><br />
+                        <a href="#XCBClientMessageEvent">       XCBClientMessageEvent   </a><br />
+                        <a href="#XCBPropertyNotifyEvent">      XCBPropertyNotifyEvent  </a><br />
+                        <a href="#XCBSelectionClearEvent">      XCBSelectionClearEvent  </a><br />
+                        <a href="#XCBSelectionNotifyEvent">     XCBSelectionNotifyEvent     </a><br />
+                        <a href="#XCBSelectionRequestEvent">    XCBSelectionRequestEvent    </a><br />
+                        <a href="#XCBGeEvent">              XCBGeEvent              </a><br />
+                    </dd>
+                </div>
+                <div>
+                    <a href="#Enumerators">             Enums:          </a><br />
+                    <dd>
+                        <a href="#XCBWindowState">          XCBWindowState          </a><br />
+                    </dd>
+                </div>
+                <div class="Functions">
+                    <a href="#Functions">           Functions:          </a><br />
+                    <dd>
+                        <a href="#XCBOpenDisplay">  XCBOpenDisplay   </a><br />
+                    </dd>
+                </div>
+            </div>
+            <div class="Variables">
+            </div>
+            <div class="Functions">
+            </div>
+        </div>
+        <script src="index.js"></script>
+    </body>
+</html>
