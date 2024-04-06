@@ -35,7 +35,6 @@
 
 
 /* error codes */
-#include <X11/X.h>
 #include <X11/Xproto.h>
 
 #include <stdio.h>
@@ -347,6 +346,7 @@ XCBGetSetup(XCBDisplay *display)
 XCBScreen *
 XCBGetScreen(XCBDisplay *display)
 {
+    /* could alos use xcb_aux_get_screen()*/   
     return xcb_setup_roots_iterator(xcb_get_setup(display)).data;
 }
 
@@ -660,7 +660,7 @@ XCBGetGeometryReply(
 
 
 XCBCookie
-XCBInternAtomCookie(XCBDisplay *display, const char *name, int only_if_exists)
+XCBInternAtomCookie(XCBDisplay *display, const char *name, uint8_t only_if_exists)
 {
     const xcb_intern_atom_cookie_t cookie = xcb_intern_atom(display, only_if_exists, strlen(name), name);
     XCBCookie ret = { .sequence = cookie.sequence };
@@ -677,6 +677,14 @@ XCBInternAtomReply(XCBDisplay *display, XCBCookie cookie)
     XCBGenericError *err = NULL;
     const xcb_intern_atom_cookie_t cookie1 = { .sequence = cookie.sequence };
     xcb_intern_atom_reply_t *reply = xcb_intern_atom_reply(display, cookie1, &err);
+
+#ifdef DBG
+    if(reply && reply->length > 1)
+    {
+        _XCB_MANUAL_DEBUG0("There are several possible atoms for the provided cookie, this might be important.");
+        XCBBreakPoint();
+    }
+#endif
     if(err)
     {
         _xcb_err_handler(display, err);
@@ -1127,23 +1135,23 @@ XCBErrorCodeText(
     const char *errs[18] =
     {
         [0] = NULL,
-        [BadRequest] = "BadRequest",
-        [BadValue] = "BadValue",
-        [BadWindow] = "BadWindow",
-        [BadPixmap] = "BadPixmap",
-        [BadAtom] = "BadAtom",
-        [BadCursor] = "BadCursor",
-        [BadFont] = "BadFont",
-        [BadMatch] = "BadMatch",
-        [BadDrawable] = "BadDrawable",
-        [BadAccess] = "BadAccess",
-        [BadAlloc] = "BadAlloc",
-        [BadColor] = "BadColor",
-        [BadGC] = "BadGC",
-        [BadIDChoice] = "BadIDChoice",
-        [BadName] = "BadName",
-        [BadLength] = "BadLength",
-        [BadImplementation] = "BadImplementation",
+        [XCBBadRequest] = "BadRequest",
+        [XCBBadValue] = "BadValue",
+        [XCBBadWindow] = "BadWindow",
+        [XCBBadPixmap] = "BadPixmap",
+        [XCBBadAtom] = "BadAtom",
+        [XCBBadCursor] = "BadCursor",
+        [XCBBadFont] = "BadFont",
+        [XCBBadMatch] = "BadMatch",
+        [XCBBadDrawable] = "BadDrawable",
+        [XCBBadAccess] = "BadAccess",
+        [XCBBadAlloc] = "BadAlloc",
+        [XCBBadColor] = "BadColor",
+        [XCBBadGC] = "BadGC",
+        [XCBBadIDChoice] = "BadIDChoice",
+        [XCBBadName] = "BadName",
+        [XCBBadLength] = "BadLength",
+        [XCBBadImplementation] = "BadImplementation",
     };
     /* bounds check */          /* & over && for better inlining */
     error_code *= (error_code > 0) & (error_code < 18);
