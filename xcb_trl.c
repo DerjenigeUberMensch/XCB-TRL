@@ -91,15 +91,15 @@ typedef struct _xcb_caller _xcb_caller;
 
 struct _xcb_caller 
 {
-    XCBCookie id;
+    unsigned int id;
     char *name;
 };
 
 #define MAX_DEBUG_LIMIT     32768   /* the number means nothing its just some random big enough number for most use cases */
                 
 _xcb_caller _xcb_funcs[MAX_DEBUG_LIMIT];
-uint32_t rear = -1;
-uint32_t front = -1;
+long long rear = -1;
+long long front = -1;
 
 
 static void
@@ -129,7 +129,7 @@ static void
 _xcb_push_func(XCBCookie cookie, char *func)
 {
     _xcb_caller item;
-    item.id = cookie;
+    item.id = cookie.sequence;
     item.name = func;
 
     if(rear == MAX_DEBUG_LIMIT - 1)
@@ -155,6 +155,8 @@ _xcb_pop_func(XCBCookie cookie)
     }
     else
     {
+        _xcb_funcs[front].name = NULL;
+        _xcb_funcs[front].id = 0;
         front += 1;
     }
 }
@@ -167,7 +169,7 @@ _xcb_show_call_stack(void)
     }
     else
     {
-        for(int i = front; i <= rear; ++i)
+        for(long long i = front; i <= rear; ++i)
         {   _XCB_MANUAL_DEBUG("%s", _xcb_funcs[i].name);
         }
     }
@@ -177,22 +179,57 @@ void
 XCBBreakPoint(void) 
 {
 }
-
-void
-XCBDebugShowCallStack(void)
-{
-    _xcb_show_call_stack();
-}
-
-#else
-
-void
-XCBDebugShowCallStack(void)
-{
-    _XCB_MANUAL_DEBUG0("Debugging is not enabled in this session.");
-}
-
 #endif
+
+char *
+XCBDebugGetCallStack()
+{
+    char *stack = NULL;
+#ifdef DBG
+    long long size = 0;
+    long long charsize = 0;
+    /* yeah idk */
+    for(long long i = front; i <= rear; ++i, ++size)
+    {   charsize += strlen(_xcb_funcs[i].name);
+    }
+    /* +size cause we need spaces, and +1 cause we need \0 */
+    stack = malloc(charsize * sizeof(char) + --size * sizeof(char) + 1 * sizeof(char));
+    if(stack)
+    {   
+        if(front != -1 && rear != -1 && front != rear)
+        {   strcpy(stack, _xcb_funcs[front].name);
+            strcat(stack, " ");
+        }
+        else
+        {   free(stack);
+            return NULL;
+        }
+        for(long long i = front; i <= rear; ++i)
+        {
+            strcat(stack, _xcb_funcs[i].name);
+            strcat(stack, " ");
+        }
+        strcat(stack, "\0");
+    }
+#endif
+    return stack;
+}
+
+char *
+XCBDebugGetLastCall()
+{
+    const char *lastcall = NULL;
+#ifdef DBG
+    if(front != -1 && rear != -1 && front != rear)
+    {
+        if(_xcb_funcs[rear].name)
+        {   lastcall = _xcb_funcs[rear].name;
+        }
+    }
+#endif
+    return (char *)lastcall;
+}
+
 
 
 

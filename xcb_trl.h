@@ -3117,7 +3117,6 @@ XCBGetWMProtocolsCookie(
  * Grabs the reply and returns a structure to the XCBGetWMProtocol containing the array length (atoms_len) and the array (*atoms).
  *
  * NOTE: CALLER MUST CALL XCBWipeGetWMProtocolsReply() when done using data.
- * NOTE: DATA IS NOT ALLOCATED ON THE HEAP AND SHOULD NEVER BE freed using free(), see above.
  *
  * RETURN: 1 On Success;
  *         0 On Failure;
@@ -3129,7 +3128,10 @@ XCBGetWMProtocolsReply(
         XCBWMProtocols *protocol_return
         );
 
-/*
+/* This frees resulting data from the protocols->_reply section of the provided structure.
+ * 
+ * NOTE: No protection against illegal memory frees, using free();
+ *
  */
 void
 XCBWipeGetWMProtocolsReply(
@@ -3204,7 +3206,10 @@ XCBGetWMClassReply(
         XCBWMClass *class_return
         );
 
-/* Frees resulting data.
+/* This frees resulting data from the _class->_reply section of the provided structure.
+ * 
+ * NOTE: No protection against illegal memory frees, using free();
+ *
  */
 void
 XCBWipeGetWMClass(
@@ -3224,10 +3229,25 @@ XCBWipeGetWMClass(
 
 
 
+/* Returns a null terminating string to the call stack seperate by a space to the next called function.
+ *
+ * NOTE: XCB_TRL_ENABLE_DEBUG must be defined for this function to return any meaningfull data.
+ *
+ * RETURN: char * On Success.
+ * RETURN: NULL On Failure.
+ */
+char *
+XCBDebugGetCallStack();
 
-
-void
-XCBDebugShowCallStack(void);
+/* Returns a null terminating string to the last called function.
+ *
+ * NOTE: XCB_TRL_ENABLE_DEBUG must be defined for this function to return any meaningfull data.
+ *
+ * RETURN: char * On Success.
+ * RETURN: NULL On Failure.
+ */
+char *
+XCBDebugGetLastCall();
 
 
 
