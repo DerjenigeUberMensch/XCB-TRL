@@ -460,6 +460,32 @@ struct XCBCookie64
 {   uint64_t sequence;
 };
 
+/* ORDER.
+ * BLUE + (GREEN << 8) + (RED << 16) + (ALPHA << 24)
+ */
+union XCBARGB
+{
+#if __LITTLE_ENDIAN__
+    struct
+    {
+        uint8_t a;  /* Alpha value */
+        uint8_t r;  /* Red Value   */
+        uint8_t g;  /* Green Value */
+        uint8_t b;  /* Blue Value  */
+    };
+    uint32_t argb;  /* ARGB 32bit value */
+#else
+    struct
+    {
+        uint8_t b;  /* Blue Value  */
+        uint8_t g;  /* Green Value */
+        uint8_t r;  /* Red Value   */
+        uint8_t a;  /* Alpha value */
+    };
+    uint32_t argb;  /* ARGB 32bit value */
+#endif
+};
+
 
 /* macros */
 enum XCBWindowState
@@ -1538,7 +1564,9 @@ XCBLowerWindowIf(
  * GREEN    (0, 255) (unsigned char)
  * ALPHA    (0, 255) (unsigned char)
  *
- * FORMAT: BLUE + (GREEN << 8) + (RED << 16) + (ALPHA << 24)
+ * FORMAT: BLUE + (GREEN << 8) + (RED << 16) + (ALPHA << 24).
+ *
+ * NOTE: You may use XCBARGB union for this and simply pass XCBARGB x.argb to the border_pixel, though this is not standard.
  *
  * RETURN: Cookie to request.
  */
@@ -3177,7 +3205,7 @@ XCBGetWMProtocolsCookie(
  * NOTE: CALLER MUST CALL XCBWipeGetWMProtocols() when done using data.
  *
  * RETURN: 1 On Success;
- *         0 On Failure;
+ * RETURNL 0 On Failure;
  */
 int
 XCBGetWMProtocolsReply(
