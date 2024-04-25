@@ -1,1 +1,5 @@
 # XCB-TRL
+
+## Format Transition
+
+XCB-TRL is mainly a Xlib-like write of the XCB protocol bindings, some parts have been lightly documented while others have shizo rambling, this was primarily a personal project and likely is not production ready.
