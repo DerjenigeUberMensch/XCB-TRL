@@ -58,15 +58,6 @@ typedef int16_t  i16;
 typedef int32_t  i32;
 typedef int64_t  i64;
 
-static void
-_xcb_handler(XCBDisplay *display, XCBGenericError *err)
-{
-}
-                                                        /* this saves a conditional check which isnt "expensive".
-                                                         * But is basically free no overhead aside from the function call which your gonna do anyway.
-                                                         */
-static void (*_handler)(XCBDisplay *, XCBGenericError *) = _xcb_handler;
-
 
 #ifdef XCB_TRL_ENABLE_DEBUG
 #define DBG             1
@@ -291,6 +282,39 @@ XCBDebugGetAdjacentCallers(XCBCookie cookie)
 #endif
     return NULL;
 }
+
+char *
+XCBDebugGetNameFromId(
+        XCBCookie id
+        )
+{
+#ifdef XCB_TRL_ENABLE_DEBUG
+    for(long long i = front; i != rear; i = (i + 1) % MAX_DEBUG_LIMIT)
+    {   
+        if(_xcb_funcs[i].id == id.sequence)
+        {   return _xcb_funcs[i].name;
+        }
+    }
+#endif
+    return NULL;
+}
+
+static void
+_xcb_handler(XCBDisplay *display, XCBGenericError *err)
+{
+#ifdef XCB_TRL_ENABLE_DEBUG
+    for(long long i = front; i != rear; i = (i + 1) % MAX_DEBUG_LIMIT)
+    {   
+        if(_xcb_funcs[i].id == err->error_code)
+        {   _XCB_MANUAL_DEBUG("%s", _xcb_funcs[i].name);
+        }
+    }
+#endif
+}
+                                                        /* this saves a conditional check which isnt "expensive".
+                                                         * But is basically free no overhead aside from the function call which your gonna do anyway.
+                                                         */
+static void (*_handler)(XCBDisplay *, XCBGenericError *) = _xcb_handler;
 
 
 
@@ -1178,6 +1202,47 @@ XCBCreatePixmap(XCBDisplay *display, XCBWindow root, u16 width, u16 height, u8 d
     return id;
 }
 
+XCBCookie
+XCBCopyArea(
+    XCBDisplay *display, 
+    XCBDrawable source, 
+    XCBDrawable destination, 
+    XCBGC gc, 
+    int16_t SourceStartCopyX, 
+    int16_t SourceStartCopyY,
+    uint16_t CopyWidth,
+    uint16_t CopyHeight,
+    int16_t DestinationStartPasteX,
+    int16_t DestinationStartPasteY
+    )
+{
+    XCBCookie ret = xcb_copy_area(
+        display, 
+        source, 
+        destination, 
+        gc, 
+        SourceStartCopyX, 
+        SourceStartCopyY,
+        DestinationStartPasteX,
+        DestinationStartPasteY,
+        CopyWidth,
+        CopyHeight
+        );
+#ifdef DBG
+    _xcb_push_func(ret, _fn);
+#endif
+    return ret;
+}
+
+XCBCookie
+XCBFreePixmap(XCBDisplay *display, XCBPixmap pixmap)
+{
+    XCBCookie ret = xcb_free_pixmap(display, pixmap);
+#ifdef DBG
+    _xcb_push_func(ret, _fn);
+#endif
+    return ret;
+}
 /* Cursors */
 
 XCBCursor
@@ -1778,7 +1843,7 @@ int
 XCBNextEvent(XCBDisplay *display, XCBGenericEvent **event_return) 
 {
     /* waits till next event happens before returning */
-    return !!((*event_return = xcb_wait_for_event(display)));
+    return !((*event_return = xcb_wait_for_event(display)));
 }
 
 XCBGenericEvent *
@@ -2054,6 +2119,15 @@ XCBGrabPointerReply(
 
 }
 
+XCBCookie
+XCBUngrabPointer(XCBDisplay *display, XCBTimestamp tim)
+{
+    const XCBCookie ret = xcb_ungrab_pointer(display, tim);
+#ifdef DBG
+    _xcb_push_func(ret, _fn);
+#endif
+    return ret;
+}
 
 int
 XCBDisplayKeyCodes(XCBDisplay *display, int *min_keycode_return, int *max_keycode_return)
@@ -2347,11 +2421,10 @@ XCBCreateWindow(
         const u32 *value_list)
 {
     const XCBWindow id = xcb_generate_id(display);
-    const void *used = NULL;
 
     /* not actually used but just for standards */
     XCBCookie ret = xcb_create_window(display, depth, id, parent, x, y, width, height, border_width, 
-    class, visual, valuemask, used);
+    class, visual, valuemask, value_list);
     
 #ifdef DBG
     _xcb_push_func(ret, _fn);
@@ -2407,6 +2480,19 @@ u32 valuemask, const void *valuelist)
     return id;
 }
 
+XCBCookie
+XCBFreeGC(
+        XCBDisplay *display,
+        XCBGC gc
+        )
+{
+    XCBCookie ret = xcb_free_gc(display, gc);
+
+#ifdef DBG
+    _xcb_push_func(ret, _fn);
+#endif
+    return ret;
+}
 int
 XCBSetLineAttributes(XCBDisplay *display, XCBGC gc, u32 linewidth, u32 linestyle, u32 capstyle, u32 joinstyle)
 {
@@ -2802,6 +2888,32 @@ XCBSetWMHintsCookie(
     _xcb_push_func(ret, _fn);
 #endif
     return ret;
+}
+
+XCBCookie
+XCBGetWMNameCookie(XCBDisplay *display, XCBWindow win)
+{
+    const xcb_get_property_cookie_t cookie = xcb_icccm_get_wm_name(display, win);
+    XCBCookie ret = { .sequence = cookie.sequence };
+#ifdef DBG
+    _xcb_push_func(ret, _fn);
+#endif
+    return ret;
+}
+
+uint8_t
+XCBGetWMNameReply(XCBDisplay *display, XCBCookie cookie, XCBTextProperty *prop_return)
+{
+    XCBGenericError *err = NULL;
+    const xcb_get_property_cookie_t cookie1 = { cookie.sequence };
+    u8 status = xcb_icccm_get_wm_name_reply(display, cookie1, prop_return, &err);
+
+    if(err)
+    {   
+        _xcb_err_handler(display, err);
+        status = 0;
+    }
+    return status;
 }
 
 XCBCookie

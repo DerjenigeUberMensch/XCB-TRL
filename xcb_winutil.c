@@ -96,7 +96,7 @@ XCBInitAtoms(XCBDisplay *display, XCBAtom *wm_atom_return, XCBAtom *net_atom_ret
         netcookies[NetWMAllowedActions] = XCBInternAtomCookie(display, "_NET_WM_ALLOWED_ACTIONS", False);
         netcookies[NetWMStrut] = XCBInternAtomCookie(display, "_NET_WM_STRUT", False);
         netcookies[NetWMStrutPartial] = XCBInternAtomCookie(display, "_NET_WM_STRUT_PARTIAL", False);
-        netcookies[NetWMIconGeometry] = XCBInternAtomCookie(display, "_NET_WM_ICON_GEOMETRY", False);
+        netcookies[NetWMIconGeometry] = XCBInternAtomCookie(display, "_NET_WM_ICON_GEOMETRY", False);   /* this property is pretty dumb. */
         netcookies[NetWMIcon] = XCBInternAtomCookie(display, "_NET_WM_ICON", False);
         netcookies[NetWMPid] = XCBInternAtomCookie(display, "_NET_WM_PID", False);
         netcookies[NetWMHandledIcons] = XCBInternAtomCookie(display, "_NET_WM_HANDLED_ICONS", False);
@@ -134,6 +134,7 @@ XCBInitAtoms(XCBDisplay *display, XCBAtom *wm_atom_return, XCBAtom *net_atom_ret
         /* other */
         netcookies[NetWMFullPlacement] = XCBInternAtomCookie(display, "_NET_WM_FULL_PLACEMENT", False);
         netcookies[NetWMWindowsOpacity] = XCBInternAtomCookie(display, "_NET_WM_WINDOW_OPACITY", False);
+        netcookies[NetUtf8String] = XCBInternAtomCookie(display, "UTF8_STRING", False);
     }
 
     if(wm_atom_return)
@@ -253,6 +254,8 @@ XCBInitAtoms(XCBDisplay *display, XCBAtom *wm_atom_return, XCBAtom *net_atom_ret
         /* other */
         net_atom_return[NetWMFullPlacement] = XCBInternAtomReply(display, netcookies[NetWMFullPlacement]);
         net_atom_return[NetWMWindowsOpacity] = XCBInternAtomReply(display, netcookies[NetWMWindowsOpacity]);
+
+        net_atom_return[NetUtf8String] = XCBInternAtomReply(display, netcookies[NetUtf8String]);
     }
 }
 
@@ -306,41 +309,58 @@ XCBGetTextProp(
 	return 1;
 }
 
-/* Original implementation by: baskerville
- * Part of the xtitle repository.
- * https://github.com/baskerville/xtitle
- *
- * LICENSE for this function.
- *
- * This is free and unencumbered software released into the public domain.
- *
- * Anyone is free to copy, modify, publish, use, compile, sell, or
- * distribute this software, either in source code form or as a compiled
- * binary, for any purpose, commercial or non-commercial, and by any
- * means.
- *
- * In jurisdictions that recognize copyright laws, the author or authors
- * of this software dedicate any and all copyright interest in the
- * software to the public domain. We make this dedication for the benefit
- * of the public at large and to the detriment of our heirs and
- * successors. We intend this dedication to be an overt act of
- * relinquishment in perpetuity of all present and future rights to this
- * software under copyright law.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- * IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
- * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * THER DEALINGS IN THE SOFTWARE.
- *
- * For more information, please refer to <http://unlicense.org/>
-*/
-wchar_t *
+
+char *
 XCBGetWindowName(
         XCBDisplay *display, 
-        XCBWindow win)
+        XCBWindow win
+        )
 {
-    return NULL;
+    XCBCookie wmnamecookie = XCBGetWMNameCookie(display, win);
+    XCBTextProperty textprop;
+    uint8_t textstatus = 0;
+    char *ret = NULL;
+
+    textstatus = XCBGetWMNameReply(display, wmnamecookie, &textprop);
+
+    if(textstatus)
+    {   ret = textprop.name;
+    }
+
+    return ret;
+}
+
+
+XCBCookie
+XCBGetPidCookie(
+        XCBDisplay *display,
+        XCBWindow win,
+        XCBAtom _NET_WM_PID_ID
+        )
+{
+    const uint8_t INITAL_BYTE_OFFSET = 0;
+    const uint8_t LENGTH = 1;   /* Pid is just 1 uint32_t */
+    XCBCookie ret = XCBGetWindowPropertyCookie(display, win, _NET_WM_PID_ID, INITAL_BYTE_OFFSET, LENGTH, False, XCB_ATOM_CARDINAL);
+
+    return ret;
+}
+
+int32_t
+XCBGetPidReply(
+        XCBDisplay *display,
+        XCBCookie cookie
+        )
+{
+    XCBWindowProperty *prop = XCBGetWindowPropertyReply(display, cookie);
+    int32_t pid = -1;
+    if(prop)
+    {   
+        void *data = XCBGetWindowPropertyValue(prop);
+        if(data)
+        {   /* pid is always just 1 int32_t */
+            pid = *(int32_t *)data;
+        }
+        free(prop);
+    }
+    return pid;
 }
