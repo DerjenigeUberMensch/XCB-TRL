@@ -483,6 +483,7 @@ union XCBARGB
      * NO SUPPORTED ENDIAN TYPE.
      * If you are using PDP_ENDIAN you might have to manually shift the values yourself.
      */
+    #error "No supported endian type. If you are using PDP_ENDIAN you might have to manually shift the values yourself."
 #endif
     uint32_t argb;  /* ARGB 32bit value */
 };
@@ -1338,27 +1339,11 @@ uint8_t
 XCBDefaultDepth(
         XCBDisplay *display, 
         int screen);
-/* <From https://tronche.com/gui/x/xlib/event-handling/XSelectInput.html>
- * 
- * The XCBSelectInput() function requests that the X server report the events associated with the specified event mask. Initially, X will not report any of these events. Events are reported relative to a window. 
- * If a window is not interested in a device event, 
- * it usually propagates to the closest ancestor that is interested, unless the do_not_propagate mask prohibits it.
+/* See Xlib's documentation of XSelectInput()
  *
- * Setting the event-mask attribute of a window overrides any previous call for the same window but not for other clients. 
- * Multiple clients can select for the same events on the same window with the following restrictions:
- *      - Multiple clients can select events on the same window because their event masks are disjoint. 
- *        When the X server generates an event, it reports it to all interested client.
- *
- *      - Only one client at a time can select XCB_CIRCULATE_REQUEST, XCB_CONFIGURE_REQUEST, or XCB_MAP_REQUEST events, 
- *        Which are associated with the event mask XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT.
- *      - Only one client at a time can select a XCB_RESIZE_REQUEST event, which is associated with the event mask XCB_EVENT_MASK_RESIZE_REDIRECT.
- *      - Only one client at a time can select a XCB_BUTTON_PRESS event, which is associated with the event mask XCB_EVENT_MASK_BUTTON_PRESS.
- *
- * The server reports the event to all interested clients.
- *
- * XSelectInput() can generate a BadWindow error.
- *
- *
+ * NOTE: This function IS buffered and must be Flushed before receiving any thing back. (IE your events you want to listen to.)
+ *       XCBFlush(MyDisplay); 
+ *       XCBSync(); Has different behaviour, prefer XCBFlush()
  *
  * RETURN: Cookie to request.
 */
@@ -1818,7 +1803,28 @@ XCBCreatePixmap(
         uint16_t width, 
         uint16_t height, 
         uint8_t depth);
-
+/*
+ */
+XCBCookie
+XCBCopyArea(
+    XCBDisplay *display, 
+    XCBDrawable source, 
+    XCBDrawable destination, 
+    XCBGC gc, 
+    int16_t SourceStartCopyX, 
+    int16_t SourceStartCopyY,
+    uint16_t CopyWidth,
+    uint16_t CopyHeight,
+    int16_t DestinationStartPasteX,
+    int16_t DestinationStartPasteY
+    );
+/*
+ */
+XCBCookie
+XCBFreePixmap(
+        XCBDisplay *display, 
+        XCBPixmap pixmap
+        );
 /*
  */
 XCBCursor 
@@ -2252,8 +2258,8 @@ XCBSendEvent(
  * event_return: XCBGenericError * on Error.
  * event_return: NULL on I/O Error.
  *
- * RETURN: 1 On Success.
- * RETURN: 0 On Failure.
+ * RETURN: 1 On Failure.
+ * RETURN: 0 On Success.
  */
 int
 XCBNextEvent(
@@ -2642,6 +2648,15 @@ XCBGrabPointerReply(
         XCBCookie cookie
         );
 
+/* Ungrabs the pointer from the specfied display
+ *
+ * RETURN: Cookie to request.
+ */
+XCBCookie
+XCBUngrabPointer(
+        XCBDisplay *display,
+        XCBTimestamp tim
+        );
 
 /* Returns min-keycodes and max-keycodes supported by the specified display.
  * The minimum number of KeyCodes returned is never less than 8, and the maximum number of KeyCodes returned is never greater than 255. 
@@ -2924,7 +2939,17 @@ XCBCreateGC(
         XCBDisplay *display, 
         XCBDrawable drawable, 
         uint32_t valuemask, 
-        const void *valuelist);
+        const void *valuelist
+        );
+
+/*
+ * Frees GC.
+ */
+XCBCookie
+XCBFreeGC(
+        XCBDisplay *display,
+        XCBGC gc
+        );
 /* 
  * linewidth: measured in pixels and can be greater than or equal to one, a wide line, or the special value zero, a thin line.
  * linestyle: XCB_LINE_STYLE_SOLID          The full path of the line is drawn.
@@ -3258,6 +3283,23 @@ XCBSetWMHintsCookie(
 /*
  */
 XCBCookie
+XCBGetWMNameCookie(
+        XCBDisplay *display, 
+        XCBWindow win);
+
+/*
+ * RETURN: 1 on Success.
+ * RETURN: 0 on Failure.
+ */
+uint8_t
+XCBGetWMNameReply(
+        XCBDisplay *display, 
+        XCBCookie cookie, 
+        XCBTextProperty *prop_return
+        );
+/*
+ */
+XCBCookie
 XCBGetWMNormalHintsCookie(
         XCBDisplay *display,
         XCBWindow win
@@ -3366,6 +3408,11 @@ XCBDebugGetPreviousCall(
 char *
 XCBDebugGetFirstCall(
         void
+        );
+
+char *
+XCBDebugGetNameFromId(
+        XCBCookie id
         );
 
 
