@@ -295,6 +295,7 @@ typedef xcb_time_t XCBTime;
 typedef xcb_timestamp_t XCBTimestamp;
 typedef xcb_client_message_data_t  XCBClientMessageData;
 typedef xcb_get_property_reply_t XCBWindowProperty;
+typedef xcb_create_window_value_list_t XCBCreateWindowValueList;
 
 /* Analagous to Xlib's XA_(type)
  * XCB_ATOM_NONE = 0,
@@ -440,7 +441,7 @@ typedef xcb_destroy_notify_event_t XCBDestroyNotifyEvent;
 typedef xcb_gravity_notify_event_t XCBGravityNotifyEvent;
 typedef xcb_map_notify_event_t XCBMapNotifyEvent;
 typedef xcb_mapping_notify_event_t XCBMappingNotifyEvent;
-typedef xcb_unmap_notify_event_t XCBUnMapNotifyEvent;
+typedef xcb_unmap_notify_event_t XCBUnmapNotifyEvent;
 typedef xcb_visibility_notify_event_t XCBVisibilityNotifyEvent;
 typedef xcb_reparent_notify_event_t XCBReparentNotifyEvent;
 typedef xcb_colormap_notify_event_t XCBColormapNotifyEvent;
@@ -1455,6 +1456,16 @@ XCBSync(
 void
 XCBSyncf(
         XCBDisplay *display
+        );
+
+/* Reparents the window with win being the source Window and parent being the new Parent window */
+XCBCookie
+XCBReparentWindow(
+        XCBDisplay *display,
+        XCBWindow win,
+        XCBWindow parent,
+        int32_t x,
+        int32_t y
         );
 
 /* Moves the specified window using the provided x and y coordinates.
@@ -2908,10 +2919,11 @@ XCBCreateWindow(
         uint16_t height, 
         uint16_t border_width, 
         uint8_t depth, 
-        unsigned int _class, 
+        uint16_t _class, 
         XCBVisual visual, 
         uint32_t valuemask, 
-        const uint32_t *value_list);
+        const XCBCreateWindowValueList *value_list
+        );
 /*
  */
 XCBWindow
