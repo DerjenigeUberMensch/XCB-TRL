@@ -469,23 +469,27 @@ struct XCBCookie64
  */
 union XCBARGB
 {
+    struct
+    {
 #if __BYTE_ORDER == __ORDER_LITTLE_ENDIAN__
-    uint8_t a;  /* Alpha value */
-    uint8_t r;  /* Red Value   */
-    uint8_t g;  /* Green Value */
     uint8_t b;  /* Blue Value  */
+    uint8_t g;  /* Green Value */
+    uint8_t r;  /* Red Value   */
+    uint8_t a;  /* Alpha value */
 #elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-    uint8_t b;  /* Blue Value  */
-    uint8_t g;  /* Green Value */
-    uint8_t r;  /* Red Value   */
     uint8_t a;  /* Alpha value */
+    uint8_t r;  /* Red Value   */
+    uint8_t g;  /* Green Value */
+    uint8_t b;  /* Blue Value  */
 #else
+    uint8_t pad[4];
     /* 
      * NO SUPPORTED ENDIAN TYPE.
      * If you are using PDP_ENDIAN you might have to manually shift the values yourself.
      */
     #error "No supported endian type. If you are using PDP_ENDIAN you might have to manually shift the values yourself."
 #endif
+    } c;
     uint32_t argb;  /* ARGB 32bit value */
 };
 
