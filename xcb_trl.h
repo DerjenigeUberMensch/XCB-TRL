@@ -1958,17 +1958,10 @@ XCBFreeTextProperty(
  * Flushes buffered output to XServer.
  * Blocks Until buffer is fully flushed.
  *
- * !!!!!!IMPORTANT!!!!!!
- * This function should not be called often and should be called on important things that cant wait for XCBSync();
- *
- * NOTE: Flushing small buffers, e.g. requests_pending < 100 is slightly faster than calling XCBSync.
- *       however due to the nature of flushing this case rarely if ever occurs.
- * NOTE: Flushing large buffers e.g., requests_pending > 200-1000 is considerably slower than calling XCBSync.
- *       however yields faster results then calling neither.
- * 
- * CONCLUSION: Use XCBSync() when ever possible, and after every ~1000 requests_pending due to the Display buffer filling up.
- *             Though depending on use case XCBSync may never need to be called, if there arent enough requests_pending to fill up Display buffer.
- *
+ * NOTE: >> This is how you send requests to the server after doing buffering requests          <<.
+ *       >> AKA you wont get responses back from non XCBGetCookie/XCBGetReply type functions    <<.
+ *       >> Remember to Flush! Or Sync (slower)                                                 <<.
+ *       
  * RETURN: 1 on Success.
  * RETURN: 0 on Failure.
  */ 
