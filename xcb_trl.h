@@ -2056,6 +2056,7 @@ XCBHasDisplayError(
  * Though this api may provide more specific calls when debug mode is used.
  *
  * NOTE: Handler provided should NOT free() the XCBGenericError * provided.
+ * NOTE: Handler is global and only 1 handler can be set when interacting with this API.
  *
  * RETURN: 1 Error handler set.
  * RETURN: 0 Error handler unset.
