@@ -11,7 +11,7 @@ static const char *GTK_ATOM_NAMES[GTKLAST] =
 };
 
 
-static const uint8_t GTK_ATOM_LEN[GTKLAST] = 
+static const int GTK_ATOM_LEN[GTKLAST] = 
 {
     [GTKEdgeConstraints] = sizeof("_GTK_EDGE_CONSTRAINTS") - 1,
     [GTKShowWindowMenu] = sizeof("_GTK_SHOW_WINDOW_MENU") - 1,
@@ -24,7 +24,7 @@ static const uint8_t GTK_ATOM_LEN[GTKLAST] =
 
 
 void
-XCBInitGTKAtoms(
+XCBInitGTKAtomsCookie(
         XCBDisplay *display,
         XCBCookie *gtk_cookie_return
         )
