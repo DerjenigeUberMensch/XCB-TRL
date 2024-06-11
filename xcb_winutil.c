@@ -7,7 +7,7 @@
 #include "xcb_trl.h"
 #include "xcb_winutil.h"
 
-static const char *WM_ATOM_NAMES[WMLast]= 
+static const char *const WM_ATOM_NAMES[WMLast]= 
 {
     [WMName]              = "WM_NAME",
     [WMIconName]          = "WM_ICON_NAME",
@@ -45,7 +45,7 @@ static const unsigned int WM_ATOM_LEN[WMLast] =
     [WMState]             = sizeof("WM_STATE") - 1
 };
 
-static const char *NET_WM_ATOM_NAMES[NetLast] =
+static const char *const NET_WM_ATOM_NAMES[NetLast] =
 {
     [NetSupported]               = "_NET_SUPPORTED",
     [NetClientList]              = "_NET_CLIENT_LIST",
