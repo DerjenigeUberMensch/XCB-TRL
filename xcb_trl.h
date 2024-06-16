@@ -1950,6 +1950,16 @@ XCBCookie
 XCBDefineCursor(
         XCBDisplay *display, 
         XCBWindow window, XCBCursor id);
+/*
+ * NOTE: foreground/background flags must be set, "pixel" property is always ignored.
+ */
+XCBCookie 
+XCBRecolorCursor(
+        XCBDisplay *display, 
+        XCBCursor cursor, 
+        XCBColor *foreground, 
+        XCBColor *background
+        );
 
 /*
  */
