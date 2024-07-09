@@ -631,7 +631,7 @@ typedef xcb_selection_clear_event_t XCBSelectionClearEvent;
 typedef xcb_selection_notify_event_t XCBSelectionNotifyEvent;
 typedef xcb_selection_request_event_t XCBSelectionRequestEvent;
 /* This is NOT short for XCBGenericEvent rather is used for Ge Events */
-typedef xcb_ge_event_t XCBGeEvent;
+typedef xcb_ge_generic_event_t XCBGeEvent;
 
 
 
@@ -767,7 +767,7 @@ are reserved in the protocol for errors and replies. */
 #define XCBColormapNotify	                XCB_COLORMAP_NOTIFY
 #define XCBClientMessage	                XCB_CLIENT_MESSAGE
 #define XCBMappingNotify	                XCB_MAPPING_NOTIFY
-#define XCBGeEvent		                    XCB_GE_GENERIC
+#define XCBGeGeneric		                XCB_GE_GENERIC
 #define XCBLASTEvent		                ((XCB_GE_GENERIC > 36 ? XCB_GE_GENERIC + 1 : 36))	/* must be bigger than any event number */
 
 
@@ -2598,6 +2598,23 @@ XCBSendEvent(
         uint32_t event_mask,
         const char *event
         );
+
+/* Copies err to xcb err handler set when using this API.
+ */
+void
+XCBSendError(
+        XCBDisplay *display,
+        XCBGenericError *err
+        );
+/* This is used by external libraries. 
+ * NOTE: Field '*err' must be a pointer to a memory allocated block of memory that is inacessible after callig this function.
+ */
+void
+XCBSendErrorP(
+        XCBDisplay *display,
+        XCBGenericError *err
+        );
+
 /* 
  * Gets and returns the next Event from the XServer.
  * This returns a structure called xcb_generic_event_t.
