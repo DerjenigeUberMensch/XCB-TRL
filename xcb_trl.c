@@ -2059,7 +2059,7 @@ XCBGetErrorCodeText(
     XCBCookie ret = { .sequence = 0 };
     _xcb_push_func(ret, _fn);
 #endif
-    const char *const errs[18] =
+    static const char *const errs[18] =
     {
         [0] = NULL,
         [XCBBadRequest] = "BadRequest",
@@ -2093,7 +2093,7 @@ XCBGetErrorMajorCodeText(
     XCBCookie ret = { .sequence = 0 };
     _xcb_push_func(ret, _fn);
 #endif
-    const char *const errs[128] = 
+    static const char *const errs[128] = 
     {
         [0] = NULL,
         [X_CreateWindow] = "CreateWindow",
@@ -2270,7 +2270,7 @@ XCBGetFullErrorText(
     XCBCookie ret = { .sequence = 0 };
     _xcb_push_func(ret, _fn);
 #endif
-    const char *errs[18] =
+    static const char *errs[18] =
     {
         [0] = NULL,
         [XCBBadRequest] = "BadRequest (invalid request code or no such operation)",
