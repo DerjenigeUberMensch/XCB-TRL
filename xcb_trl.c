@@ -255,7 +255,7 @@ XCBBreakPoint(void)
 #endif
 
 char *
-XCBDebugGetCallStack()
+XCBDebugGetCallStack(void)
 {
     char *stack = NULL;
 #ifdef DBG
@@ -285,7 +285,7 @@ XCBDebugGetCallStack()
 }
 
 char *
-XCBDebugGetLastCall()
+XCBDebugGetLastCall(void)
 {
     const char *lastcall = NULL;
 #ifdef DBG
@@ -300,7 +300,7 @@ XCBDebugGetLastCall()
 }
 
 char *
-XCBDebugGetFirstCall()
+XCBDebugGetFirstCall(void)
 {
     char *firstcall = NULL;
 #if DBG
@@ -824,6 +824,32 @@ XCBChangeWindowAttributes(
         )
 {
     XCBCookie ret = xcb_change_window_attributes_aux(display, window, mask, window_attributes);
+#ifdef DBG
+    _xcb_push_func(ret, _fn);
+#endif
+    return ret;
+}
+
+XCBCookie
+XCBInstallColormap(
+        XCBDisplay *display,
+        XCBColormap colormap
+        )
+{
+    XCBCookie ret = xcb_install_colormap(display, colormap);
+#ifdef DBG
+    _xcb_push_func(ret, _fn);
+#endif
+    return ret;
+}
+
+XCBCookie
+XCBUninstallColormap(
+        XCBDisplay *display,
+        XCBColormap colormap
+        )
+{
+    XCBCookie ret = xcb_uninstall_colormap(display, colormap);
 #ifdef DBG
     _xcb_push_func(ret, _fn);
 #endif
