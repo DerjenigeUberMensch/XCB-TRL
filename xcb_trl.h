@@ -46,13 +46,6 @@
 /*
  * Basic XCB Usage.
  *
- *
- * NOTE: This trl is NOT thread safe, instead one must manually lock the display for thread safety.
- * NOTE: These functions only LOCK the display NOT the current thread.
- * XCBLockDisplay();    // Analagous to pthread_mutex_lock
- * XCBUnlockDisplay();  // Analagous to pthread_mutex_unlock
- *
- *
  * xcb has a async way of handling stuff so when you call a function to do something async, unless you poll for reply nothing will happen.
  * This is because the item is buffered to itself meaning that unless you call XCBSync() or XCBFlush() you will never get your event back.
  * This is bad as it makes some things harder to use but its mostly good cause you can make a buffered requests and then just send that 1 big buffer.
