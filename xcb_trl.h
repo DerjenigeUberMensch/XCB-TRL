@@ -1852,18 +1852,7 @@ XCBWhitePixel(
 
 /* Syncs the current client to the XServer.
  *
- * This is generally a much faster approach than explicitly calling XCBFlush(); due to the lack of need to write to buffer(I/O)
- * However does not substitute in any way XCBFlush(); Use it instead when requiring a output;
- * 
- * Remember Syncing is cheap, Flushing is expensive.
- *
- * NOTE: Having too many request pending eg. not Syncing causes slow requests to the server, this is due to the buffer being full.
- *       Meaning you must sync the buffer with the XServer to send more, (eg. requests_pending > 1000).
- * NOTE: Flushing is mostly fine at requests_pending < 100, however syncing is still prefered when available.
- *       There would be a noticeable delay though when flushing at requests_pending > 200-1000.
- * NOTE: You can tests this on your system by sending alot of requests to the XServer and calling XFlush after x amount of requests.
- * NOTE: It is recommended to call XSync() after every ~1000 or so requests, if quickly sending alot of events.
- *       However if not sending alot of events in x < 1 (seconds) then syncing may not be nessesary.
+ * This simply sends all requests to the XServer and waits for any replies to be generated back, this does not infinitely block until replies are back but waits if they are avaible.
  */
 void 
 XCBSync(
