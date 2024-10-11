@@ -46,6 +46,13 @@
 /*
  * Basic XCB Usage.
  *
+ *
+ * NOTE: This trl is NOT thread safe, instead one must manually lock the display for thread safety.
+ * NOTE: These functions only LOCK the display NOT the current thread.
+ * XCBLockDisplay();    // Analagous to pthread_mutex_lock
+ * XCBUnlockDisplay();  // Analagous to pthread_mutex_unlock
+ *
+ *
  * xcb has a async way of handling stuff so when you call a function to do something async, unless you poll for reply nothing will happen.
  * This is because the item is buffered to itself meaning that unless you call XCBSync() or XCBFlush() you will never get your event back.
  * This is bad as it makes some things harder to use but its mostly good cause you can make a buffered requests and then just send that 1 big buffer.
@@ -660,7 +667,8 @@ union XCBARGB
 
 
 /* macros */
-enum XCBWMWindowState
+enum 
+XCBWMWindowState
 {
     XCB_WINDOW_NORMAL_STATE = XCB_ICCCM_WM_STATE_NORMAL,
     XCB_WINDOW_ICONIC_STATE = XCB_ICCCM_WM_STATE_ICONIC,
@@ -1852,7 +1860,18 @@ XCBWhitePixel(
 
 /* Syncs the current client to the XServer.
  *
- * This simply sends all requests to the XServer and waits for any replies to be generated back, this does not infinitely block until replies are back but waits if they are avaible.
+ * This is generally a much faster approach than explicitly calling XCBFlush(); due to the lack of need to write to buffer(I/O)
+ * However does not substitute in any way XCBFlush(); Use it instead when requiring a output;
+ * 
+ * Remember Syncing is cheap, Flushing is expensive.
+ *
+ * NOTE: Having too many request pending eg. not Syncing causes slow requests to the server, this is due to the buffer being full.
+ *       Meaning you must sync the buffer with the XServer to send more, (eg. requests_pending > 1000).
+ * NOTE: Flushing is mostly fine at requests_pending < 100, however syncing is still prefered when available.
+ *       There would be a noticeable delay though when flushing at requests_pending > 200-1000.
+ * NOTE: You can tests this on your system by sending alot of requests to the XServer and calling XFlush after x amount of requests.
+ * NOTE: It is recommended to call XSync() after every ~1000 or so requests, if quickly sending alot of events.
+ *       However if not sending alot of events in x < 1 (seconds) then syncing may not be nessesary.
  */
 void 
 XCBSync(
@@ -3843,17 +3862,12 @@ XCBKillClient(
 typedef xcb_icccm_get_wm_protocols_reply_t XCBWMProtocols;
 typedef xcb_icccm_wm_hints_t XCBWMHints;
 typedef xcb_icccm_get_wm_class_reply_t XCBWMClass;
-/*
- * min_aspect_num:          The minimum aspect ratios for the width.
- * min_aspect_den:          The minimum aspect ratios for the height.
- * max_aspect_num:          The maximum aspect ratios for the width.
- * max_aspect_den:          The maximum aspect ratios for the height.
- */
 typedef xcb_size_hints_t XCBSizeHints;
 
 
 
 enum
+XCBWMHintsFlags
 {
     XCB_WM_HINT_INPUT = XCB_ICCCM_WM_HINT_INPUT ,
     XCB_WM_HINT_STATE = XCB_ICCCM_WM_HINT_STATE ,
@@ -3863,19 +3877,28 @@ enum
     XCB_WM_HINT_ICON_MASK = XCB_ICCCM_WM_HINT_ICON_MASK ,
     XCB_WM_HINT_WINDOW_GROUP = XCB_ICCCM_WM_HINT_WINDOW_GROUP ,
     XCB_WM_HINT_URGENCY = XCB_ICCCM_WM_HINT_X_URGENCY,
+    XCB_WM_HINT_ALL_HINTS = (XCB_ICCCM_WM_HINT_INPUT|
+                            XCB_ICCCM_WM_HINT_STATE|
+                            XCB_ICCCM_WM_HINT_ICON_PIXMAP|
+                            XCB_ICCCM_WM_HINT_ICON_WINDOW|
+                            XCB_ICCCM_WM_HINT_ICON_POSITION|
+                            XCB_ICCCM_WM_HINT_ICON_MASK
+                            |XCB_ICCCM_WM_HINT_WINDOW_GROUP
+                            )
 };
 
 enum
+XCBSizeHintsFlags
 {
-    XCB_SIZE_HINT_P_SIZE = XCB_ICCCM_SIZE_HINT_P_SIZE,
+    XCB_SIZE_HINT_US_POSITION = XCB_ICCCM_SIZE_HINT_US_POSITION,
     XCB_SIZE_HINT_US_SIZE = XCB_ICCCM_SIZE_HINT_US_SIZE,
+    XCB_SIZE_HINT_P_POSITION = XCB_ICCCM_SIZE_HINT_P_POSITION,
+    XCB_SIZE_HINT_P_SIZE = XCB_ICCCM_SIZE_HINT_P_SIZE,
+    XCB_SIZE_HINT_P_MIN_SIZE = XCB_ICCCM_SIZE_HINT_P_MIN_SIZE,
+    XCB_SIZE_HINT_P_MAX_SIZE = XCB_ICCCM_SIZE_HINT_P_MAX_SIZE,
+    XCB_SIZE_HINT_P_RESIZE_INC = XCB_ICCCM_SIZE_HINT_P_RESIZE_INC,
     XCB_SIZE_HINT_P_ASPECT = XCB_ICCCM_SIZE_HINT_P_ASPECT,
     XCB_SIZE_HINT_P_BASE_SIZE = XCB_ICCCM_SIZE_HINT_BASE_SIZE,
-    XCB_SIZE_HINT_P_MAX_SIZE = XCB_ICCCM_SIZE_HINT_P_MAX_SIZE,
-    XCB_SIZE_HINT_P_MIN_SIZE = XCB_ICCCM_SIZE_HINT_P_MIN_SIZE,
-    XCB_SIZE_HINT_P_POSITION = XCB_ICCCM_SIZE_HINT_P_POSITION,
-    XCB_SIZE_HINT_US_POSITION = XCB_ICCCM_SIZE_HINT_US_POSITION,
-    XCB_SIZE_HINT_P_RESIZE_INC = XCB_ICCCM_SIZE_HINT_P_RESIZE_INC,
     XCB_SIZE_HINT_P_WIN_GRAVITY = XCB_ICCCM_SIZE_HINT_P_WIN_GRAVITY,
 };
 
