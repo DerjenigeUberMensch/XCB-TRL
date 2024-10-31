@@ -5,6 +5,11 @@
 
 #include <xcb/xinput.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 typedef xcb_input_xi_query_version_reply_t XCBIQueryVersion;
 typedef xcb_input_xi_event_mask_t XCBXIEventMask;
 typedef xcb_input_device_id_t XCBIDeviceId;
@@ -72,6 +77,9 @@ XCBISelectEvents(
 
 
 
+#ifdef __cplusplus
+}
+#endif
 
 
 

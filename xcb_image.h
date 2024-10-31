@@ -5,6 +5,10 @@
 #include <xcb/xcb_image.h>
 #include "xcb_trl.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 
 typedef struct xcb_image_t XCBImage;
@@ -200,8 +204,9 @@ XCBDrawLines(
 
 
 
-
-
+#ifdef __cplusplus
+}
+#endif
 
 
 

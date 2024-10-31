@@ -366,6 +366,10 @@
 #include "icccm.h"
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 
 /* #define XCB_TRL_ENABLE_DEBUG */              /* This allows more specific information about certain errors, things
@@ -4354,4 +4358,10 @@ XCBDebugGetNameFromId(
  * XCB_WINDOW_NONE = 0,
  *
 */
+
+#ifdef __cplusplus
+}
+#endif
+
+
 #endif
