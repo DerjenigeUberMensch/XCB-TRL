@@ -1,5 +1,8 @@
 #include "xcb_trl.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
 
@@ -38,3 +41,9 @@ XCBInitGTKAtomsReply(
         XCBCookie *gtk_cookies,
         XCBAtom *gtk_atom_return
         );
+
+
+#ifdef __cplusplus
+}
+#endif
+

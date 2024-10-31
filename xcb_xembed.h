@@ -1,6 +1,11 @@
 
 #include "xcb_trl.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 /* macros */
 #ifndef XEMBED_EMBEDDED_NOTIFY
 #define XEMBED_EMBEDDED_NOTIFY      0
@@ -117,5 +122,9 @@ XCBInitXembedAtomsReply(
         XCBAtom *atom_return
         );
 
+
+#ifdef __cplusplus
+}
+#endif
 
 

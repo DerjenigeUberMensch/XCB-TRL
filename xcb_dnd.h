@@ -3,6 +3,10 @@
 
 #include "xcb_trl.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 
 
@@ -42,5 +46,10 @@ XCBInitDNDAtomsReply(
         XCBCookie *cookies,
         XCBAtom *atom_return
         );
+
+#ifdef __cplusplus 
+} 
+#endif
+
 
 #endif

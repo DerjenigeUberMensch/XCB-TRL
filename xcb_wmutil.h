@@ -3,6 +3,11 @@
 
 #include "xcb_trl.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 /* Default XCB Handling for events (assuming no window manager was running).
  */
 void
@@ -263,6 +268,10 @@ XCBWMHandlerErrorHandler(
     XCBGenericEvent *event
     );
 
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif

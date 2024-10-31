@@ -1,10 +1,12 @@
-#include "xcb_xinput.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include <X11/extensions/XI2.h>
+
+#include "xcb_xinput.h"
+#include "__private__xcb__utils__.h"
 
 
 /* count bits */
@@ -40,14 +42,9 @@ XCBIQueryVersionReply(
 {
     XCBGenericError *err = NULL;
     const xcb_input_xi_query_version_cookie_t _cookie = { .sequence = cookie.sequence };
-    xcb_input_xi_query_version_reply_t *rep = xcb_input_xi_query_version_reply(display, _cookie, &err);
-    if(err)
-    {   
-        XCBSendErrorP(display, err);
-        free(rep);
-        return NULL;
-    }
-    return rep;
+    xcb_input_xi_query_version_reply_t *reply = xcb_input_xi_query_version_reply(display, _cookie, &err);
+
+    return __xcb__private__handle__err(display, err, reply);
 }
 
 void
