@@ -1,12 +1,11 @@
 #ifndef XCB_WMUTIL_H_
 #define XCB_WMUTIL_H_
 
-#include "xcb_trl.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include "xcb_trl.h"
 
 /* Default XCB Handling for events (assuming no window manager was running).
  */
@@ -272,6 +271,5 @@ XCBWMHandlerErrorHandler(
 #ifdef __cplusplus
 }
 #endif
-
 
 #endif

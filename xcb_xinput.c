@@ -5,8 +5,8 @@
 
 #include <X11/extensions/XI2.h>
 
-#include "xcb_xinput.h"
 #include "__private__xcb__utils__.h"
+#include "xcb_xinput.h"
 
 
 /* count bits */
@@ -31,6 +31,8 @@ XCBIQueryVersionCookie(
     const xcb_input_xi_query_version_cookie_t cookie = xcb_input_xi_query_version(display, major, minor);
     const XCBCookie ret = { .sequence = cookie.sequence };
 
+    _xcb_push_func(ret);
+
     return ret;
 }
 
@@ -40,11 +42,19 @@ XCBIQueryVersionReply(
         XCBCookie cookie
         )
 {
+    XCBCookie ret = { .sequence = 0 };
+    _xcb_push_func(ret);
+
     XCBGenericError *err = NULL;
     const xcb_input_xi_query_version_cookie_t _cookie = { .sequence = cookie.sequence };
-    xcb_input_xi_query_version_reply_t *reply = xcb_input_xi_query_version_reply(display, _cookie, &err);
-
-    return __xcb__private__handle__err(display, err, reply);
+    xcb_input_xi_query_version_reply_t *rep = xcb_input_xi_query_version_reply(display, _cookie, &err);
+    if(err)
+    {   
+        XCBSendErrorP(display, err);
+        free(rep);
+        return NULL;
+    }
+    return rep;
 }
 
 void
@@ -52,6 +62,9 @@ XCBIInitializeMask(
         XCBIEventMask *eventmask
         )
 {
+    XCBCookie ret = { .sequence = 0 };
+    _xcb_push_func(ret);
+
     memset(eventmask, 0, sizeof(XCBIEventMask));
 }
 
@@ -61,6 +74,9 @@ XCBISetMask(
         XCBXIEventMask mask
         )
 {
+    XCBCookie ret = { .sequence = 0 };
+    _xcb_push_func(ret);
+
     eventmasks->mask |= mask;
 }
 
@@ -70,6 +86,9 @@ XCBIUnsetMask(
         XCBXIEventMask mask
         )
 {
+    XCBCookie ret = { .sequence = 0 };
+    _xcb_push_func(ret);
+
     eventmasks->mask &= ~(mask);
 }
 
@@ -79,6 +98,9 @@ XCBISetDevice(
         XCBIDeviceId id
         )
 {
+    XCBCookie ret = { .sequence = 0 };
+    _xcb_push_func(ret);
+
     eventmasks->id = id;
 }
 
@@ -89,6 +111,7 @@ XCBISelectEvents(
         XCBIEventMask *eventmasks
         )
 {
+
     const uint8_t MAX_EVENT_MASK_LENGTH = 26;
     uint8_t length = __bit_len_32(eventmasks->mask);
 
@@ -125,6 +148,9 @@ XCBISelectEvents(
     */
     memcpy((uint8_t *)ev + SIZE_REAL, &eventmasks->mask, sizeof(uint32_t));
     XCBCookie ret = xcb_input_xi_select_events(display, win, 1, (void *)ev);
+
+    _xcb_push_func(ret);
+
     return ret;
 }
 

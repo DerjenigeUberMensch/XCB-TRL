@@ -1,11 +1,12 @@
 #ifndef XCB_DND_H_
 #define XCB_DND_H_
 
-#include "xcb_trl.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+
+#include "xcb_trl.h"
 
 
 
@@ -47,9 +48,8 @@ XCBInitDNDAtomsReply(
         XCBAtom *atom_return
         );
 
-#ifdef __cplusplus 
-} 
+#ifdef __cplusplus
+}
 #endif
-
 
 #endif

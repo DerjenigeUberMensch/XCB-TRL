@@ -1,13 +1,12 @@
 #ifndef XCB_PTL_IMAGE_TYPEDEF_H_
 #define XCB_PTL_IMAGE_TYPEDEF_H_
 
-
-#include <xcb/xcb_image.h>
-#include "xcb_trl.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <xcb/xcb_image.h>
+#include "xcb_trl.h"
 
 
 
@@ -204,10 +203,12 @@ XCBDrawLines(
 
 
 
+
+
+
 #ifdef __cplusplus
 }
 #endif
-
 
 
 #endif

@@ -1,17 +1,12 @@
 #ifndef __XCB__XINERAMA__H__
 #define __XCB__XINERAMA__H__
 
-
-#include <xcb/xinerama.h>
-
-
-#include "xcb_trl.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-
+#include <xcb/xinerama.h>
+#include "xcb_trl.h"
 
 typedef xcb_xinerama_query_version_reply_t XCBXineramaQueryVersion;
 
@@ -38,6 +33,5 @@ XCBXineramaQueryVersionReply(
 #ifdef __cplusplus
 }
 #endif
-
 
 #endif

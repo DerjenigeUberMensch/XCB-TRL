@@ -1,29 +1,80 @@
-#include "__private__xcb__utils__.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include <xcb/xcb.h>
 
-#include "xcb_trl.h"
+#include <X11/Xproto.h>
 
-/*
- * DONOT CHANGE.
- * Due to implementation details this function should NEVER be changed. 
- *
- */
-void *
-__xcb__private__handle__err(
+#include "xcb_trl.h"
+#include "__private__xcb__utils__.h"
+
+
+
+/* HELPER FUNCTION */
+xcb_screen_t *
+screen_of_display(
         xcb_connection_t *display, 
-        xcb_generic_error_t *err,
-        void *reply
+        int screen
         )
 {
-    if(reply)
-    {   return reply;
-    }
+    xcb_screen_iterator_t iter;
 
-    /* on some rare ocassions err can be NULL */
-    if(err)
-    {   XCBSendErrorP(display, err);
+    iter = xcb_setup_roots_iterator(xcb_get_setup(display));
+    for(; iter.rem; --screen, xcb_screen_next(&iter))
+    {
+        if(screen == 0)
+        {   return iter.data;
+        }
     }
+    return NULL;
+}
 
+char *
+XCBDebugGetCallStack(void)
+{
+    char *stack = NULL;
+#ifdef XCB_TRL_ENABLE_DEBUG
+#endif
+    return stack;
+}
+
+char *
+XCBDebugGetLastCall(void)
+{
+    const char *lastcall = NULL;
+#ifdef XCB_TRL_ENABLE_DEBUG
+#endif
+    return (char *)lastcall;
+}
+
+char *
+XCBDebugGetFirstCall(void)
+{
+    char *firstcall = NULL;
+#if XCB_TRL_ENABLE_DEBUG
+#endif
+    return firstcall;
+}
+
+/* TODO */
+char *
+XCBDebugGetAdjacentCallers(
+        XCBCookie cookie
+        )
+{
+    /* prob could use a hashmap or something */
+#ifdef XCB_TRL_ENABLE_DEBUG
+#endif
+    return NULL;
+}
+
+char *
+XCBDebugGetNameFromId(
+        XCBCookie id
+        )
+{
+#ifdef XCB_TRL_ENABLE_DEBUG
+#endif
     return NULL;
 }

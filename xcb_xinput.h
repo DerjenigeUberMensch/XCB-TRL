@@ -1,14 +1,15 @@
 #ifndef _XCB_PTL_XINPUT_H_
 #define _XCB_PTL_XINPUT_H_
 
-#include "xcb_trl.h"
-
-#include <xcb/xinput.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+
+#include "xcb_trl.h"
+
+#include <xcb/xinput.h>
 
 typedef xcb_input_xi_query_version_reply_t XCBIQueryVersion;
 typedef xcb_input_xi_event_mask_t XCBXIEventMask;

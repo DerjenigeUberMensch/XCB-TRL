@@ -5,8 +5,6 @@
 extern "C" {
 #endif
 
-
-
 /* AKA XCBArgb
  *
  * BLUE     (0, 255) (unsigned char)
@@ -22,6 +20,5 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-
 
 #endif

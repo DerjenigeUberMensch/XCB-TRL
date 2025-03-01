@@ -1,10 +1,10 @@
 #ifndef XCB_WINUTIL_H
 #define XCB_WINUTIL_H
 
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 
 #include "xcb_trl.h"
 
@@ -182,6 +182,5 @@ XCBGetPidReply(
 #ifdef __cplusplus
 }
 #endif
-
 
 #endif

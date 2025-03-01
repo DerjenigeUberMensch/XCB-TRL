@@ -1,20 +1,29 @@
 #ifndef __XCB__PRIVATE__UTILS__H__
 #define __XCB__PRIVATE__UTILS__H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include <stdio.h>
+#include <stdlib.h>
+
 #include <xcb/xcb.h>
 
-/*
- * void * returned is status or likely return.
- * ie if void * is non null the reply is safe to use.
- * else err was generated.
- */
-void *
-__xcb__private__handle__err(
-        xcb_connection_t *display, 
-        xcb_generic_error_t *err,
-        void *reply
-        );
+#include "safebool.h"
+#include "__private__xcb__err__.h"
 
+#ifdef XCB_TRL_ENABLE_DEBUG
+
+#define _XCB_MANUAL_DEBUG(fmt, ...)             (fprintf(stderr, "_XCB_DEBUG_ [%s:%d] by %s(): " fmt "\n", __FILE__,__LINE__,__func__,__VA_ARGS__))
+#define _XCB_MANUAL_DEBUG0(X)                   (fprintf(stderr, "_XCB_DEBUG_ [%s:%d] by %s(): " X "\n", __FILE__, __LINE__, __func__))
+
+#else
+
+#define _XCB_MANUAL_DEBUG(fmt, ...)             ((void)0)
+#define _XCB_MANUAL_DEBUG0(X)                   ((void)0)
+
+#endif
 
 /* gcc */
 #if defined(__GNUC__) || defined(__clang__)
@@ -83,13 +92,25 @@ __xcb__private__handle__err(
 
 
 #ifndef likely
-#define likely(X)    X
+#define likely(X)       (X)
 #endif
 
 #ifndef unlikely
-#define unlikely(X) X
+#define unlikely(X)     (X)
 #endif
 #endif
 
+
+
+xcb_screen_t *
+screen_of_display(
+        xcb_connection_t *display, 
+        int screen
+        );
+
+#ifdef __cplusplus
+}
 #endif
 
+
+#endif
