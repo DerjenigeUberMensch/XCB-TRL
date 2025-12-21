@@ -269,7 +269,9 @@ XCBDrawLine(
         int32_t y2
         )
 {
-    const XCBPoint points[2] = 
+    enum { POINTS_LEN = 2 };
+
+    const XCBPoint points[POINTS_LEN] = 
     { 
         /* point 1 */
         { 
@@ -283,7 +285,7 @@ XCBDrawLine(
         }
     };
 
-    XCBCookie ret = xcb_poly_line(display, coordinatemode, drawable, gc, 2, points);
+    XCBCookie ret = xcb_poly_line(display, coordinatemode, drawable, gc, POINTS_LEN, points);
 
     _xcb_push_func(ret);
 
@@ -306,17 +308,3 @@ XCBDrawLines(
 
     return ret;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
