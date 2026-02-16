@@ -12,10 +12,22 @@ extern "C" {
 
 #ifdef XCB_TRL_ENABLE_DEBUG
     #define _xcb_push_func(XCB_PUSH_COOKIE) XCBDebugPushID(__func__, XCB_PUSH_COOKIE.sequence)
+    #define _xcb_convert_id(XCB_COOKIE) XCBCookie ret = { .sequence = XCB_COOKIE.sequence }
 #else
     #define _xcb_push_func(XCB_PUSH_COOKIE) ((void)XCB_PUSH_COOKIE)
 #endif
 
+#define _xcb_convert_id(XCB_COOKIE) XCBCookie ret = { .sequence = XCB_COOKIE.sequence }
+#define _xcb_standardize(XCB_COOKIE) \
+    _xcb_convert_id(XCB_COOKIE); \
+    _xcb_push_func(ret); \
+    return ret
+#define _xcb_standardize_validate(COOKIE_CAST, RET_CAST, FUNC, DISPLAY, COOKIE) \
+    XCBGenericError *err = NULL; \
+    void *reply; \
+    reply = FUNC(DISPLAY, (COOKIE_CAST) { .sequence = COOKIE.sequence }, &err); \
+    __XValidateReply(display, NULL, err); \
+    return (RET_CAST) reply
 
 
 /*
