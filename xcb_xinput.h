@@ -24,7 +24,6 @@ struct XCBIEventMask
 };
 
 
-
 XCBCookie
 XCBIQueryVersionCookie(
         XCBDisplay *display,
@@ -69,14 +68,6 @@ XCBISelectEvents(
         XCBWindow win,
         XCBIEventMask *eventmasks
         );
-
-
-
-
-
-
-
-
 
 #ifdef __cplusplus
 }
