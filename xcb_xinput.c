@@ -49,7 +49,7 @@ XCBIQueryVersionReply(
     const xcb_input_xi_query_version_cookie_t _cookie = { .sequence = cookie.sequence };
     xcb_input_xi_query_version_reply_t *rep = xcb_input_xi_query_version_reply(display, _cookie, &err);
     if(err)
-    {   
+    {
         XCBSendErrorP(display, err);
         free(rep);
         return NULL;
@@ -139,7 +139,7 @@ XCBISelectEvents(
     {
         _mask = eventmasks->mask & (1 << x);
         if(_mask)
-        {   
+        {
             memcpy(start, &_mask, SIZE_REAL);
             ++start;
         }
@@ -158,14 +158,14 @@ XCBISelectEvents(
 /* Events
  * XCB_INPUT_KEY_PRESS
  * XCB_INPUT_KEY_RELEASE
- * XCB_INPUT_BUTTON_PRESS 
+ * XCB_INPUT_BUTTON_PRESS
  * XCB_INPUT_BUTTON_RELEASE
  * XCB_INPUT_MOTION
- * XCB_INPUT_ENTER 
- * XCB_INPUT_LEAVE 
- * XCB_INPUT_FOCUS_IN 
- * XCB_INPUT_FOCUS_OUT 
- * XCB_INPUT_HIERARCHY 
+ * XCB_INPUT_ENTER
+ * XCB_INPUT_LEAVE
+ * XCB_INPUT_FOCUS_IN
+ * XCB_INPUT_FOCUS_OUT
+ * XCB_INPUT_HIERARCHY
  * XCB_INPUT_PROPERTY
  * XCB_INPUT_RAW_KEY_PRESS
  * XCB_INPUT_RAW_KEY_RELEASE
@@ -173,7 +173,7 @@ XCBISelectEvents(
  * XCB_INPUT_RAW_BUTTON_RELEASE
  * XCB_INPUT_RAW_MOTION
  * XCB_INPUT_TOUCH_BEGIN
- * XCB_INPUT_TOUCH_UPDATE 
+ * XCB_INPUT_TOUCH_UPDATE
  * XCB_INPUT_TOUCH_END
  * XCB_INPUT_TOUCH_OWNERSHIP
  * XCB_INPUT_RAW_TOUCH_BEGIN
@@ -184,13 +184,13 @@ XCBISelectEvents(
  * XCB_INPUT_GESTURE_PINCH_BEGIN
  * XCB_INPUT_GESTURE_PINCH_UPDATE
  * XCB_INPUT_GESTURE_PINCH_END
- * XCB_INPUT_GESTURE_SWIPE_BEGIN 
+ * XCB_INPUT_GESTURE_SWIPE_BEGIN
  * XCB_INPUT_GESTURE_SWIPE_UPDATE
  * XCB_INPUT_GESTURE_SWIPE_END
  * XCB_INPUT_SEND_EXTENSION_EVENT
  *
  *
- * event structures: 
+ * event structures:
  * xcb_input_event_for_send_t
  *
  *

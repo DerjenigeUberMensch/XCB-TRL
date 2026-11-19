@@ -16,13 +16,26 @@ extern "C" {
     #define _xcb_push_func(XCB_PUSH_COOKIE) ((void)XCB_PUSH_COOKIE)
 #endif
 
+#define XCB_COOKIE_IDENTIFIER __builtin__xcb___cookie
+#define _xcb_convert_id(XCB_COOKIE) XCBCookie XCB_COOKIE_IDENTIFIER = { .sequence = XCB_COOKIE.sequence }
 
+#define _xcb_standardize(XCB_COOKIE)                                           \
+        _xcb_convert_id(XCB_COOKIE);                                           \
+        _xcb_push_func(XCB_COOKIE_IDENTIFIER);                               \
+        return XCB_COOKIE_IDENTIFIER
+#define _xcb_standardize_validate(COOKIE_CAST, RET_CAST, FUNC, DISPLAY,        \
+                                  COOKIE)                                      \
+  XCBGenericError *err = NULL;                                                 \
+  void *reply;                                                                 \
+  reply = FUNC(DISPLAY, (COOKIE_CAST){.sequence = COOKIE.sequence}, &err);     \
+  __XValidateReply(display, NULL, err);                                        \
+  return (RET_CAST)reply
 
 /*
  * RETURN: true on valid format.
  * RETURN: false on invalid format.
  */
-bool 
+bool
 __XValidFormat(
         uint8_t x
         );
@@ -33,7 +46,7 @@ __XValidFormat(
  * RETURN: true on valid size.
  * RETURN: false on invalid size.
  */
-bool 
+bool
 __XValidSize(
         uint32_t value_len
         );
@@ -71,28 +84,28 @@ __XCheckReply(
 void
 __XCBThrowError(
         xcb_connection_t *display,
-        xcb_void_cookie_t cookie, 
-        uint8_t error, 
-        uint8_t major_code, 
+        xcb_void_cookie_t cookie,
+        uint8_t error,
+        uint8_t major_code,
         uint16_t minor_code
         );
 
 void
 __XCBSetErrorHandler(
         void (*error_handler)(
-            XCBDisplay *, 
+            XCBDisplay *,
             XCBGenericError *
             )
         );
 
-void 
+void
 XCBBreakPoint(
         void
         );
 
-void 
+void
 XCBDebugPushID(
-    const char *const function_name, 
+    const char *const function_name,
     uint32_t sequence
     );
 

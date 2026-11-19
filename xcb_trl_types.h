@@ -330,9 +330,6 @@ union XCBARGB
 
 typedef union _XCBEvent
 {
-    /* response_type to get event you still must use XCB_EVENT_RESPONSE_TYPE(event) macro*/
-    uint8_t response_type;
-
     XCBAnyEvent xany;
     XCBKeyEvent xkey;
     XCBButtonEvent xbutton;
@@ -367,9 +364,9 @@ typedef union _XCBEvent
 
     XCBGeEvent xgeneric;
 
-
+    /* response_type to get event you still must use XCB_EVENT_RESPONSE_TYPE(event) macro*/
+    uint8_t response_type;
 } XCBEvent;
-
 
 
 /* macros */
